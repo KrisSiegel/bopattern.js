@@ -1,0 +1,20 @@
+{
+    "name": "bopattern.js",
+    "main": "dist/bopattern.min.js",
+    "description": "BoPattern.js is a pattern of life control",
+    "version": "1.0.0",
+    "homepage": "https://github.com/immuta/bopattern.js",
+    "authors": [
+        "Kris Siegel"
+    ],
+    "license": "Apache 2.0",
+    "ignore": [
+        "dist/",
+        ".travis.yml",
+        "bower.json",
+        "Gruntfile.js",
+        "src/",
+        "node_modules/",
+        "ext-lib/"
+    ]
+}

@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>Mocha</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+
+    <script type="text/javascript">
+        mocha.setup('bdd');
+        window.specRunner = "spec.html";
+    </script>
+
+    <script type='text/javascript' src="../dist/bopattern.js"></script>
+    <!-- Start JS Files --><!-- End JS Files -->
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script>
+        if (window.mochaPhantomJS) {
+            mochaPhantomJS.run();
+        } else {
+            mocha.run();
+        }
+    </script>
+  </body>
+</html>
