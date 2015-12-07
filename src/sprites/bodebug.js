@@ -19,7 +19,7 @@ BoPattern.extend(function(internal) {
             update: function(ctx) {
                 txt = "X: " + Math.floor(internal.user.mousePosition.x) + " Y: " + Math.floor(internal.user.mousePosition.y);
                 txtMeasurement = ctx.measureText(txt);
-                x = (internal.canvas.width - txtMeasurement.width);
+                x = (internal.screenWidth - txtMeasurement.width);
             },
             load: function() {
 

@@ -11,15 +11,6 @@ BoPattern.extend(function(internal) {
         }
     };
 
-    // Update canvas size upon resize
-    var resize = function() {
-        internal.canvas.width = internal.parent.getBoundingClientRect().width;
-        internal.canvas.height = internal.parent.getBoundingClientRect().height;
-    };
-
-    // Setup event listener for when the window is resized
-    window.addEventListener("resize", resize, false);
-
     // Update mouse information
     internal.canvas.addEventListener("mousemove", function(e) {
         var bounding = internal.canvas.getBoundingClientRect();
@@ -34,7 +25,10 @@ BoPattern.extend(function(internal) {
         // Normally wouldn't need in an update but it's kinda needed to do measurements
         var ctx = internal.context2D;
 
-        resize();
+        internal.canvas.width = internal.parent.getBoundingClientRect().width;
+        internal.canvas.height = internal.parent.getBoundingClientRect().height;
+        internal.screenWidth = internal.canvas.width;
+        internal.screenHeight = internal.canvas.height;
 
         updateZ("background", ctx);
         updateZ("foreground", ctx);

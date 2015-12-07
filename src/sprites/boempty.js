@@ -19,8 +19,8 @@ BoPattern.extend(function(internal) {
             },
             update: function(ctx) {
                 txtMeasurement = ctx.measureText(txt);
-                x = ((internal.canvas.width / 2) - txtMeasurement.width);
-                y = ((internal.canvas.height / 2) - txtMeasurement.height);
+                x = ((internal.screenWidth / 2) - txtMeasurement.width);
+                y = ((internal.screenHeight / 2) - txtMeasurement.height);
             },
             load: function() {
 
