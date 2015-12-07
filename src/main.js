@@ -6,12 +6,6 @@ var BoPattern = (function() {
     var bo = function(input) {
         // internal object for tracking ALL THE THINGS
         var internal = {
-            default: {
-                fillColor: "#042037",
-                borderColor: "#323232",
-                borderAlpha: 0.7,
-                borderHighlight: "#A3B3A3"
-            },
             objects: {
                 background: [],
                 foreground: [],
@@ -91,9 +85,16 @@ var BoPattern = (function() {
                 if (input === true) {
                     internal.clearObjects("overlay");
                     internal.addObject("overlay", internal.BoDebug());
+                    Object.defineProperty(boObj, "internal", {
+                        configurable: true,
+                        get: function() {
+                            return internal;
+                        }
+                    });
                 }
                 if (input === false) {
                     internal.clearObjects("overlay");
+                    delete boObj.internal;
                 }
             },
             get: function() {
@@ -120,6 +121,8 @@ var BoPattern = (function() {
             // This is faster than I initially expected http://jsperf.com/array-destroy/151
             (internal.objects[zkey] || []).splice(0, (internal.objects[zkey] || []).length);
         };
+
+        internal.addObject("overlay", internal.BoEmpty());
 
         // Return our brand new instance of BoPattern.js!!! Aww yiss!
         return boObj;

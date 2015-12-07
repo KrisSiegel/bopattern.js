@@ -2,20 +2,40 @@ BoPattern.extend(function(internal) {
     "use strict";
 
     internal.BoDebug = function() {
-        return {
+        var zlayer = "overlay";
+        var txt;
+        var txtMeasurement;
+        var x;
+        var y = 20;
+
+        var me = {
             render: function(ctx) {
-                if (internal.debug) {
+                if (internal.debug && txt && x && y) {
                     ctx.font = "16pt Calibri";
                     ctx.fillStyle = "black";
-                    var txt = "X: " + Math.floor(internal.user.mousePosition.x) + " Y: " + Math.floor(internal.user.mousePosition.y);
-                    var measurement = ctx.measureText(txt);
-                    ctx.fillText(txt, (internal.canvas.width - measurement.width), 20);
+                    ctx.fillText(txt, x, y);
                 }
             },
-            update: function() {
-                // Do nothing; render reads from global mouse coordinates
+            update: function(ctx) {
+                txt = "X: " + Math.floor(internal.user.mousePosition.x) + " Y: " + Math.floor(internal.user.mousePosition.y);
+                txtMeasurement = ctx.measureText(txt);
+                x = (internal.canvas.width - txtMeasurement.width);
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
             }
         };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return zlayer;
+            }
+        });
+
+        return me;
     };
 
     return { };

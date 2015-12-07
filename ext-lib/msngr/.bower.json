@@ -1,0 +1,31 @@
+{
+  "name": "msngr.js",
+  "main": "msngr.min.js",
+  "description": "msngr.js is a small library used to facilitate communication through messages rather than direct binding. This loose coupling allows connecting components to each other or to UI components in an abstract way on the server or the client.",
+  "version": "3.2.2",
+  "homepage": "https://github.com/KrisSiegel/msngr.js",
+  "authors": [
+    "Kris Siegel"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "test-resources",
+    ".travis.yml",
+    "bower.json",
+    "Gruntfile.js",
+    "docs",
+    "src",
+    "node_modules",
+    "CHANGELOG.md"
+  ],
+  "_release": "3.2.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "3.2.2",
+    "commit": "cb4293aadb03bdd50e9aa44268476d2f37a0a9c0"
+  },
+  "_source": "git://github.com/KrisSiegel/msngr.js.git",
+  "_target": "~3.2.2",
+  "_originalSource": "msngr",
+  "_direct": true
+}

@@ -132,6 +132,8 @@ var BoPattern = (function() {
         extenders.push(obj);
     };
 
+    internal.addObject("background", internal.BoEmpty());
+
     return bo;
 }());
 
@@ -151,13 +153,14 @@ BoPattern.extend(function(internal) {
     var renderRequest;
     var render = function() {
         var ctx = internal.context2D;
-        ctx.clearRect(0, 0, internal.canvas.width, internal.canvas.height);
-
-        renderZ("background", ctx);
-        renderZ("foreground", ctx);
-        renderZ("overlay", ctx);
 
         if (rendering) {
+            ctx.clearRect(0, 0, internal.canvas.width, internal.canvas.height);
+
+            renderZ("background", ctx);
+            renderZ("foreground", ctx);
+            renderZ("overlay", ctx);
+
             renderRequest = window.requestAnimationFrame(render);
         }
     };
@@ -181,7 +184,7 @@ BoPattern.extend(function(internal) {
     var updateZ = function(z, ctx) {
         var len = internal.objects[z].length;
         for (var i = 0; i < len; ++i) {
-            internal.objects[z][i].update();
+            internal.objects[z][i].update(ctx);
         }
     };
 
@@ -190,38 +193,43 @@ BoPattern.extend(function(internal) {
         if (updating) {
             internal.canvas.width = internal.parent.getBoundingClientRect().width;
             internal.canvas.height = internal.parent.getBoundingClientRect().height;
-            updateZ("background");
-            updateZ("foreground");
-            updateZ("overlay");
         }
     };
-
-    // Update mouse information
-    internal.canvas.addEventListener("mousemove", function(e) {
-        if (updating) {
-            var bounding = internal.canvas.getBoundingClientRect();
-            internal.user.mousePosition = {
-                x: e.clientX - bounding.left,
-                y: e.clientY - bounding.top
-            };
-            updateZ("background");
-            updateZ("foreground");
-            updateZ("overlay");
-        }
-    });
-
-    // Set canvas size on initialization
-    resize();
 
     // Setup event listener for when the window is resized
     window.addEventListener("resize", resize, false);
 
+    // Update mouse information
+    internal.canvas.addEventListener("mousemove", function(e) {
+        var bounding = internal.canvas.getBoundingClientRect();
+        internal.user.mousePosition = {
+            x: e.clientX - bounding.left,
+            y: e.clientY - bounding.top
+        };
+    });
+
+    var updateRequest;
+    var update = function() {
+        var ctx = internal.context2D; // Normally wouldn't need in an update but
+        // it's kinda needed to do measurements
+        if (updating) {
+
+            updateZ("background", ctx);
+            updateZ("foreground", ctx);
+            updateZ("overlay", ctx);
+
+            updateRequest = window.requestAnimationFrame(update);
+        }
+    };
+
     internal.startUpdating = function() {
         updating = true;
+        update();
     };
 
     internal.stopUpdating = function() {
         updating = false;
+        (window.cancelAnimationFrame || window.mozCancelAnimationFrame)(updateRequest);
     };
 });
 
@@ -241,6 +249,34 @@ BoPattern.extend(function(internal) {
             },
             update: function() {
                 // Do nothing; render reads from global mouse coordinates
+            }
+        };
+    };
+
+    return { };
+});
+
+BoPattern.extend(function(internal) {
+    "use strict";
+
+    internal.BoEmpty = function() {
+        var txt = "I have no data to display :(";
+        var txtMeasurement;
+        var width;
+        var height;
+
+        return {
+            render: function(ctx) {
+                if (txtMeasurements && width && height) {
+                    ctx.font = "16pt Calibri";
+                    ctx.fillStyle = "black";
+                    ctx.fillText(txt, x, y);
+                }
+            },
+            update: function(ctx) {
+                txtMeasurement = ctx.measureText(txt);
+                width = ((internal.canvas.width / 2) - txtMeasurement.width);
+                height = ((internal.canvas.height / 2) - txtMeasurement.height);
             }
         };
     };
@@ -333,7 +369,6 @@ BoPattern.extend(function(internal) {
                             stateTransitionCount = stateTransitionCount + 10;
                             properties.alpha = ((stateTransitionCount / 100) * transitionProperties.alpha);
                             properties.borderAlpha = ((stateTransitionCount / 100) * transitionProperties.borderAlpha);
-                            setTimeout(tile.update, internal.random(10, 75));
                         }
                     }
 
@@ -349,7 +384,6 @@ BoPattern.extend(function(internal) {
                             stateTransitionCount = stateTransitionCount - 10;
                             properties.alpha = ((stateTransitionCount / 100) * properties.alpha);
                             properties.borderAlpha = ((stateTransitionCount / 100) * properties.borderAlpha);
-                            setTimeout(tile.update, internal.random(10, 75));
                         }
                     }
                 }

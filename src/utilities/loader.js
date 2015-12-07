@@ -12,7 +12,7 @@ BoPattern.extend(function(internal) {
             // tiles to go away
             var objLen = internal.objects.background.length;
             for (var i = 0; i < objLen; ++i) {
-                internal.objects.background[i].state = internal.BoTile.States.unloading;
+                internal.objects.background[i].unload();
             }
 
             var finish = function() {
@@ -68,7 +68,7 @@ BoPattern.extend(function(internal) {
 
                     var objLen = internal.objects.background.length;
                     for (var i = 0; i < objLen; ++i) {
-                        internal.objects.background[i].state = internal.BoTile.States.loading;
+                        internal.objects.background[i].load();
                     }
                 }
             };

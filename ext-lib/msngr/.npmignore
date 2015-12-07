@@ -1,0 +1,9 @@
+# msngr.js specific
+test-resources
+.travis.yml
+bower.json
+Gruntfile.js
+docs
+src
+node_modules
+CHANGELOG.md

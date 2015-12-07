@@ -1,51 +1,55 @@
 BoPattern.extend(function(internal) {
     "use strict";
-    var updating = true;
 
     // Update objects
     var updateZ = function(z, ctx) {
         var len = internal.objects[z].length;
         for (var i = 0; i < len; ++i) {
-            internal.objects[z][i].update();
+            if (internal.objects[z][i]) {
+                internal.objects[z][i].update(ctx);
+            }
         }
     };
 
     // Update canvas size upon resize
     var resize = function() {
-        if (updating) {
-            internal.canvas.width = internal.parent.getBoundingClientRect().width;
-            internal.canvas.height = internal.parent.getBoundingClientRect().height;
-            updateZ("background");
-            updateZ("foreground");
-            updateZ("overlay");
-        }
+        internal.canvas.width = internal.parent.getBoundingClientRect().width;
+        internal.canvas.height = internal.parent.getBoundingClientRect().height;
     };
-
-    // Update mouse information
-    internal.canvas.addEventListener("mousemove", function(e) {
-        if (updating) {
-            var bounding = internal.canvas.getBoundingClientRect();
-            internal.user.mousePosition = {
-                x: e.clientX - bounding.left,
-                y: e.clientY - bounding.top
-            };
-            updateZ("background");
-            updateZ("foreground");
-            updateZ("overlay");
-        }
-    });
-
-    // Set canvas size on initialization
-    resize();
 
     // Setup event listener for when the window is resized
     window.addEventListener("resize", resize, false);
 
+    // Update mouse information
+    internal.canvas.addEventListener("mousemove", function(e) {
+        var bounding = internal.canvas.getBoundingClientRect();
+        internal.user.mousePosition = {
+            x: e.clientX - bounding.left,
+            y: e.clientY - bounding.top
+        };
+    });
+
+    var updateRequest;
+    var update = function() {
+        // Normally wouldn't need in an update but it's kinda needed to do measurements
+        var ctx = internal.context2D;
+
+        resize();
+
+        updateZ("background", ctx);
+        updateZ("foreground", ctx);
+        updateZ("overlay", ctx);
+
+        updateRequest = window.requestAnimationFrame(update);
+    };
+
+    update();
+
     internal.startUpdating = function() {
-        updating = true;
+        update();
     };
 
     internal.stopUpdating = function() {
-        updating = false;
+        (window.cancelAnimationFrame || window.mozCancelAnimationFrame)(updateRequest);
     };
 });
