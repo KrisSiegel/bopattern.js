@@ -24,6 +24,7 @@
       <script type="text/javascript" src="../src/loops/update-loop.js"></script>
       <script type="text/javascript" src="../src/sprites/bodebug.js"></script>
       <script type="text/javascript" src="../src/sprites/boempty.js"></script>
+      <script type="text/javascript" src="../src/sprites/bolabel.js"></script>
       <script type="text/javascript" src="../src/sprites/botile.js"></script>
       <script type="text/javascript">
           var generateRandomData = function(rows, columns) {
@@ -44,9 +45,10 @@
           };
 
           window.addEventListener("load", function(e) {
+
               window.bopat = BoPattern("#container");
 
-              document.querySelector("button").addEventListener("click", function(e) {
+              document.querySelector("button#randomBtn").addEventListener("click", function(e) {
                   window.bopat.load(generateRandomData(12, 12), 15000);
               }, false);
 
@@ -59,7 +61,7 @@
     </head>
 
     <body>
-        <h1>BoPattern.js <button>Load Random Data</button></h1>
+        <h1>BoPattern.js <button id="randomBtn">Load Random Data</button></h1>
         <div id="container">
 
         </div>
