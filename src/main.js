@@ -6,7 +6,6 @@ var BoPattern = (function() {
     var bo = function(input) {
         // internal object for tracking ALL THE THINGS
         var internal = {
-            UpdatesPerSecond: 60,
             label: "Pattern of Life",
             objects: {
                 background: [],
