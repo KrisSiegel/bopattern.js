@@ -6,12 +6,8 @@ var BoPattern = (function() {
     var bo = function(input) {
         // internal object for tracking ALL THE THINGS
         var internal = {
-            default: {
-                fillColor: "#042037",
-                borderColor: "#323232",
-                borderAlpha: 0.7,
-                borderHighlight: "#A3B3A3"
-            },
+            UpdatesPerSecond: 60,
+            label: "Pattern of Life",
             objects: {
                 background: [],
                 foreground: [],
@@ -24,8 +20,7 @@ var BoPattern = (function() {
                     y: 0
                 }
             },
-            data: {},
-            grid: [[]]
+            data: {}
         };
 
         // Validate input
@@ -65,6 +60,20 @@ var BoPattern = (function() {
 
         internal.context2D = internal.canvas.getContext("2d");
 
+        // Gets the pixel ratio for high definition monitors
+        Object.defineProperty(internal, "pxRatio", {
+            get: function() {
+                var dpr = window.devicePixelRatio || 1;
+                var bsr = internal.context2D.backingStorePixelRatio ||
+                    internal.context2D.webkitBackingStorePixelRatio ||
+                    internal.context2D.mozBackingStorePixelRatio ||
+                    internal.context2D.msBackingStorePixelRatio ||
+                    internal.context2D.backingStorePixelRatio || 1;
+
+                return (dpr / bsr);
+            }
+        });
+
         // Verify setup since it should be theoretically done
         if (!msngr.exist(internal.canvas) || !msngr.exist(internal.context2D)) {
             throw "[BoPattern.js] Welp you passed the first set of validators but I still failed to get the canvas :(";
@@ -72,6 +81,33 @@ var BoPattern = (function() {
 
         // Set parent
         internal.parent = internal.canvas.parentNode;
+
+        Object.defineProperty(internal, "zlevels", {
+            get: function() {
+                return Object.keys(internal.objects);
+            }
+        });
+
+        // Simple random range
+        internal.random = function(min, max) {
+            return (Math.random() * (max - min) + min);
+        };
+
+        // Add the ability to add items to be rendered
+        internal.addObject = function(zkey, obj) {
+            if (msngr.exist(obj) && msngr.exist(obj.render)) {
+                internal.objects[zkey].push(obj);
+            }
+        };
+
+        // Clear the array
+        internal.clearObjects = function(zkey, type) {
+            for (var i = 0; i < internal.objects[zkey].length; ++i) {
+                if (type !== undefined && internal.objects[zkey][i].type === type) {
+                    internal.objects[zkey][i].unload();
+                }
+            }
+        };
 
         var boObj = {};
 
@@ -91,9 +127,16 @@ var BoPattern = (function() {
                 if (input === true) {
                     internal.clearObjects("overlay");
                     internal.addObject("overlay", internal.BoDebug());
+                    Object.defineProperty(boObj, "internal", {
+                        configurable: true,
+                        get: function() {
+                            return internal;
+                        }
+                    });
                 }
                 if (input === false) {
-                    internal.clearObjects("overlay");
+                    internal.clearObjects("overlay", "bodebug");
+                    delete boObj.internal;
                 }
             },
             get: function() {
@@ -101,25 +144,26 @@ var BoPattern = (function() {
             }
         });
 
-        // Simple random range
-        internal.random = function(min, max) {
-            return (Math.random() * (max - min) + min);
-        };
-
-        // Add the ability to add items to be rendered
-        internal.addObject = function(zkey, obj) {
-            if (msngr.exist(obj) && msngr.exist(obj.render)) {
-                internal.objects[zkey].push(obj);
+        Object.defineProperty(boObj, "label", {
+            get: function() {
+                return internal.label;
+            },
+            set: function(txt) {
+                internal.label = txt;
             }
-        };
+        });
 
-        // Clear the array
-        internal.clearObjects = function(zkey) {
-            // Note: we need to make sure any existing references to this array
-            // are affected which means we MUST modify the original.
-            // This is faster than I initially expected http://jsperf.com/array-destroy/151
-            (internal.objects[zkey] || []).splice(0, (internal.objects[zkey] || []).length);
-        };
+        internal.addObject("overlay", internal.BoEmpty());
+        internal.addObject("overlay", internal.BoLabel());
+
+        // Stop rendering if the user has unfocused the window
+        document.addEventListener("visibilitychange", function(e) {
+            if (document.hidden) {
+                internal.stopRendering();
+            } else {
+                internal.startRendering();
+            }
+        });
 
         // Return our brand new instance of BoPattern.js!!! Aww yiss!
         return boObj;
@@ -132,21 +176,20 @@ var BoPattern = (function() {
         extenders.push(obj);
     };
 
-    internal.addObject("background", internal.BoEmpty());
-
     return bo;
 }());
 
 BoPattern.extend(function(internal) {
     "use strict";
-    var rendering = true;
 
     var renderZ = function(z, ctx) {
         var len = internal.objects[z].length;
         for (var i = 0; i < len; ++i) {
-            ctx.beginPath();
-            internal.objects[z][i].render(ctx);
-            ctx.closePath();
+            if (internal.objects[z][i]) {
+                ctx.beginPath();
+                internal.objects[z][i].render(ctx);
+                ctx.closePath();
+            }
         }
     };
 
@@ -154,50 +197,38 @@ BoPattern.extend(function(internal) {
     var render = function() {
         var ctx = internal.context2D;
 
-        if (rendering) {
-            ctx.clearRect(0, 0, internal.canvas.width, internal.canvas.height);
+        ctx.clearRect(0, 0, internal.canvas.width, internal.canvas.height);
 
-            renderZ("background", ctx);
-            renderZ("foreground", ctx);
-            renderZ("overlay", ctx);
+        renderZ("background", ctx);
+        renderZ("foreground", ctx);
+        renderZ("overlay", ctx);
 
-            renderRequest = window.requestAnimationFrame(render);
-        }
+        renderRequest = window.requestAnimationFrame(render);
     };
 
     internal.startRendering = function() {
-        rendering = true;
         render();
     };
 
     internal.stopRendering = function() {
-        rendering = false;
         (window.cancelAnimationFrame || window.mozCancelAnimationFrame)(renderRequest);
     };
+
+    internal.startRendering();
 });
 
 BoPattern.extend(function(internal) {
     "use strict";
-    var updating = true;
 
     // Update objects
     var updateZ = function(z, ctx) {
         var len = internal.objects[z].length;
         for (var i = 0; i < len; ++i) {
-            internal.objects[z][i].update(ctx);
+            if (internal.objects[z][i]) {
+                internal.objects[z][i].update(ctx);
+            }
         }
     };
-
-    // Update canvas size upon resize
-    var resize = function() {
-        if (updating) {
-            internal.canvas.width = internal.parent.getBoundingClientRect().width;
-            internal.canvas.height = internal.parent.getBoundingClientRect().height;
-        }
-    };
-
-    // Setup event listener for when the window is resized
-    window.addEventListener("resize", resize, false);
 
     // Update mouse information
     internal.canvas.addEventListener("mousemove", function(e) {
@@ -210,47 +241,118 @@ BoPattern.extend(function(internal) {
 
     var updateRequest;
     var update = function() {
-        var ctx = internal.context2D; // Normally wouldn't need in an update but
-        // it's kinda needed to do measurements
-        if (updating) {
+        // Normally wouldn't need in an update but it's kinda needed to do measurements
+        var ctx = internal.context2D;
+        var ratio = internal.pxRatio;
 
-            updateZ("background", ctx);
-            updateZ("foreground", ctx);
-            updateZ("overlay", ctx);
+        // Set canvas size to the container's size
+        var width = internal.parent.getBoundingClientRect().width;
+        var height = internal.parent.getBoundingClientRect().height;
+        if (internal.screenWidth !== width || internal.screenHeight !== height) {
+            internal.canvas.width = (width * ratio);
+            internal.canvas.style.width = (width + "px");
+            internal.screenWidth = width;
 
-            updateRequest = window.requestAnimationFrame(update);
+            internal.canvas.height = (height * ratio);
+            internal.canvas.style.height = (height + "px");
+            internal.screenHeight = height;
+
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+            // This sets the bounding area's size for rendering the graph tiles
+            internal.boundedWidth = (internal.screenWidth - (internal.screenWidth * .15));
+            internal.boundedHeight = (internal.screenHeight - (internal.screenHeight * .20));
+
+            // This sets the location of the bounded area
+            internal.boundedX1 = ((internal.screenWidth - internal.boundedWidth) / 2);
+            internal.boundedY1 = (((internal.screenHeight - internal.boundedHeight) / 2) + (((internal.screenHeight - internal.boundedHeight) / 2) / 2));
         }
+
+        updateZ("background", ctx);
+        updateZ("foreground", ctx);
+        updateZ("overlay", ctx);
+
+        updateRequest = window.requestAnimationFrame(update);
     };
 
+
     internal.startUpdating = function() {
-        updating = true;
         update();
     };
 
     internal.stopUpdating = function() {
-        updating = false;
         (window.cancelAnimationFrame || window.mozCancelAnimationFrame)(updateRequest);
     };
+
+    internal.startUpdating();
 });
 
 BoPattern.extend(function(internal) {
     "use strict";
 
     internal.BoDebug = function() {
-        return {
+        var zlayer = "overlay";
+        var texts = { mouse: { }, tiles: { }, data: { } };
+        var updatedAtLeastOnce = false;
+
+        var me = {
+            type: "bodebug",
             render: function(ctx) {
-                if (internal.debug) {
-                    ctx.font = "16pt Calibri";
+
+                // Display text showing mouse's X and Y coordinates
+                if (updatedAtLeastOnce) {
+                    ctx.beginPath();
+                    ctx.font = "10pt Sans-serif";
                     ctx.fillStyle = "black";
-                    var txt = "X: " + Math.floor(internal.user.mousePosition.x) + " Y: " + Math.floor(internal.user.mousePosition.y);
-                    var measurement = ctx.measureText(txt);
-                    ctx.fillText(txt, (internal.canvas.width - measurement.width), 20);
+                    ctx.globalAlpha = 1;
+
+                    ctx.textAlign = "left";
+                    ctx.fillText(texts.tiles.txt, texts.tiles.x, texts.tiles.y);
+                    ctx.fillText(texts.data.txt, texts.data.x, texts.data.y);
+
+                    ctx.textAlign = "center";
+                    ctx.fillText(texts.mouse.txt, texts.mouse.x, texts.mouse.y);
+                    ctx.closePath();
                 }
+
+                // Display the bounded area where the graph should be contained within
+                ctx.beginPath();
+                ctx.strokeStyle = "#000000";
+                ctx.globalAlpha = 1;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(internal.boundedX1, internal.boundedY1, internal.boundedWidth, internal.boundedHeight);
+                ctx.closePath();
             },
-            update: function() {
-                // Do nothing; render reads from global mouse coordinates
+            update: function(ctx) {
+                texts.mouse.txt = ("X: " + Math.floor(internal.user.mousePosition.x) + " Y: " + Math.floor(internal.user.mousePosition.y));
+                var measure = ctx.measureText(texts.mouse.txt);
+                texts.mouse.x = (internal.screenWidth - measure.width);
+                texts.mouse.y = 15;
+
+                texts.tiles.txt = "Tile count: " + internal.objects.background.length;
+                texts.tiles.x = 2;
+                texts.tiles.y = 15;
+
+                texts.data.txt = "min value: " + Math.round(internal.data.minValue) + " / max value: " + Math.round(internal.data.maxValue);
+                texts.data.x = 2;
+                texts.data.y = 30;
+                updatedAtLeastOnce = true;
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
             }
         };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return zlayer;
+            }
+        });
+
+        return me;
     };
 
     return { };
@@ -260,14 +362,17 @@ BoPattern.extend(function(internal) {
     "use strict";
 
     internal.BoEmpty = function() {
+        var zlayer = "overlay";
+
         var txt = "I have no data to display :(";
         var txtMeasurement;
-        var width;
-        var height;
+        var x;
+        var y;
 
-        return {
+        var me = {
+            type: "boempty",
             render: function(ctx) {
-                if (txtMeasurements && width && height) {
+                if (x && y) {
                     ctx.font = "16pt Calibri";
                     ctx.fillStyle = "black";
                     ctx.fillText(txt, x, y);
@@ -275,10 +380,68 @@ BoPattern.extend(function(internal) {
             },
             update: function(ctx) {
                 txtMeasurement = ctx.measureText(txt);
-                width = ((internal.canvas.width / 2) - txtMeasurement.width);
-                height = ((internal.canvas.height / 2) - txtMeasurement.height);
+                x = ((internal.screenWidth / 2) - txtMeasurement.width);
+                y = ((internal.screenHeight / 2) - txtMeasurement.height);
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
             }
         };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return z;
+            }
+        });
+
+        return me;
+    };
+
+    return { };
+});
+
+BoPattern.extend(function(internal) {
+    "use strict";
+
+    internal.BoLabel = function() {
+        var zlayer = "overlay";
+        var x = 0;
+        var y = 0;
+
+        var me = {
+            type: "bolabel",
+            render: function(ctx) {
+                ctx.beginPath();
+                ctx.font = "16pt sans-serif";
+                ctx.fillStyle = "#000000";
+                ctx.globalAlpha = 1;
+                ctx.textAlign = "left";
+                ctx.fillText(internal.label, x, y);
+                ctx.closePath();
+            },
+            update: function(ctx) {
+                var measure = ctx.measureText(internal.label);
+                x = ((internal.screenWidth / 2) - (measure.width));
+                y = (internal.boundedY1 / 2);
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
+            }
+        };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return zlayer;
+            }
+        });
+
+        return me;
     };
 
     return { };
@@ -288,163 +451,163 @@ BoPattern.extend(function(internal) {
     "use strict";
 
     internal.BoTile = function(obj) {
+        var zlayer = "background";
         if (!msngr.exist(obj) || !msngr.exists(obj.value, obj.label, obj.position)) {
             throw "[BoPattern.js] Invalid parameters supplied to BoTile";
         }
+        var loaded = false;
         var properties = msngr.copy(obj);
-        var mystate;
-        var myTargetState = undefined;
-        var stateTransitionCount = undefined;
         var transitionProperties = { };
+        var state;
+        var mouseOver;
+        var cachedScreenWidth;
+        var cachedScreenHeight;
+
+        var calcTileDimensions = function() {
+            var tileWidth = (internal.boundedWidth / internal.data.maxFirstDimension);
+            var tileHeight = (internal.boundedHeight / (internal.data.maxSecondDimension + 1));
+
+            return {
+                x: internal.boundedX1 + (tileWidth * properties.position[0]),
+                y: internal.boundedY1 + (tileHeight * properties.position[1]),
+                width: tileWidth,
+                height: tileHeight
+            };
+        };
+
+        var getProperty = function(str) {
+            if (transitionProperties[str] !== undefined) {
+                return transitionProperties[str];
+            }
+
+            if (properties[str] !== undefined) {
+                return properties[str];
+            }
+            return internal.BoTile.properties[str];
+        };
 
         var tile = {
+            type: "tile",
             render: function(ctx) {
-                if (mystate !== internal.BoTile.States.initializing || myTargetState !== undefined) {
+                if (loaded) {
                     // Set the boarders
                     ctx.beginPath();
-                    ctx.fillStyle = properties.borderHighlight || internal.default.borderColor;
-                    ctx.lineWidth = properties.borderThickness || 1;
-                    ctx.globalAlpha = properties.borderAlpha;
-                    ctx.strokeRect(properties.x, properties.y, properties.width, properties.height);
+                    ctx.strokeStyle = getProperty("borderColor");
+                    ctx.lineWidth = getProperty("borderThickness");
+                    ctx.globalAlpha = getProperty("borderAlpha");
+                    ctx.strokeRect(getProperty("x"), getProperty("y"), getProperty("width"), getProperty("height"));
                     ctx.closePath();
 
                     // Set the fills
                     ctx.beginPath();
-                    ctx.fillStyle = internal.default.fillColor;
-                    ctx.globalAlpha = properties.alpha;
-                    ctx.fillRect(properties.x, properties.y, properties.width, properties.height);
+                    ctx.fillStyle = getProperty("tileColor");
+                    ctx.globalAlpha = getProperty("tileAlpha");
+                    ctx.fillRect(getProperty("x"), getProperty("y"), getProperty("width"), getProperty("height"));
                     ctx.closePath();
                 }
             },
             update: function() {
-                if (mystate !== internal.BoTile.States.initializing || myTargetState !== undefined) {
-                    var tileWidth = (internal.canvas.width / internal.data.maxFirstDimension);
-                    var tileHeight = (internal.canvas.height / internal.data.maxSecondDimension);
-
-                    properties.x = (tileWidth * properties.position[0]);
-                    properties.y = (tileHeight * properties.position[1]);
-                    properties.width = tileWidth;
-                    properties.height = tileHeight;
-
-                    var hit = false;
-                    if (internal.user.mousePosition.x >= properties.x) {
-                        if (internal.user.mousePosition.x <= (properties.x + 1 * properties.width)) {
-                            // It's in our horizontal!
-                            if (internal.user.mousePosition.y >= properties.y) {
-                                if (internal.user.mousePosition.y <= (properties.y + 1 * properties.height)) {
-                                    // IT'S IN ME!
-                                    hit = true;
-                                } else {
-                                    hit = false;
-                                }
+                if (internal.user.mousePosition.x >= properties.x) {
+                    if (internal.user.mousePosition.x <= (properties.x + 1 * properties.width)) {
+                        // It's in our horizontal!
+                        if (internal.user.mousePosition.y >= properties.y) {
+                            if (internal.user.mousePosition.y <= (properties.y + 1 * properties.height)) {
+                                // IT'S IN ME!
+                                mouseOver = true;
+                            } else {
+                                mouseOver = false;
                             }
                         }
                     }
-
-                    if (hit) {
-                        properties.borderThickness = 5;
-                        properties.borderHighlight = internal.default.borderHighlight;
-                    } else {
-                        properties.borderThickness = undefined;
-                        properties.borderHighlight = undefined;
-                    }
-
-                    if (myTargetState === internal.BoTile.States.loading) {
-                        if (stateTransitionCount === undefined) {
-                            stateTransitionCount = 0;
-                            transitionProperties.alpha = properties.alpha;
-                            transitionProperties.borderAlpha = properties.borderAlpha;
-                        }
-
-                        if (stateTransitionCount >= 100) {
-                            tile.state = internal.BoTile.States.shown;
-
-                            properties.alpha = transitionProperties.alpha;
-                            delete transitionProperties.alpha;
-
-                            properties.borderAlpha = transitionProperties.borderAlpha;
-                            delete transitionProperties.borderAlpha;
-                            stateTransitionCount = undefined;
-                        } else {
-                            stateTransitionCount = stateTransitionCount + 10;
-                            properties.alpha = ((stateTransitionCount / 100) * transitionProperties.alpha);
-                            properties.borderAlpha = ((stateTransitionCount / 100) * transitionProperties.borderAlpha);
-                        }
-                    }
-
-                    if (myTargetState === internal.BoTile.States.unloading) {
-                        if (stateTransitionCount === undefined) {
-                            stateTransitionCount = 100;
-                        }
-
-                        if (stateTransitionCount <= 0) {
-                            tile.state = internal.BoTile.States.unloaded;
-                            stateTransitionCount = undefined;
-                        } else {
-                            stateTransitionCount = stateTransitionCount - 10;
-                            properties.alpha = ((stateTransitionCount / 100) * properties.alpha);
-                            properties.borderAlpha = ((stateTransitionCount / 100) * properties.borderAlpha);
-                        }
-                    }
                 }
+
+                if (cachedScreenWidth !== internal.screenWidth || cachedScreenHeight !== internal.screenHeight) {
+                    // Screen size changed; on noes!
+                    var dimensions = calcTileDimensions();
+                    properties.x = (dimensions.x);
+                    properties.y = (dimensions.y);
+                    properties.width = dimensions.width;
+                    properties.height = dimensions.height;
+
+                    // Are we in transition?
+                    if (state !== undefined) {
+                        transitionProperties.x = properties.x;
+                        transitionProperties.y = properties.y;
+                        transitionProperties.width = properties.width;
+                        transitionProperties.height = properties.height;
+                    }
+
+                    cachedScreenWidth = internal.screenWidth;
+                    cachedScreenHeight = internal.screenHeight;
+                }
+
+                if (state === undefined) {
+                    // Default state
+                }
+
+                if (state === "loading") {
+                    state = undefined;
+                    transitionProperties = { };
+                }
+
+                if (state === "unloading") {
+                    state = undefined;
+                    transitionProperties = { };
+                    internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
+                }
+            },
+            load: function() {
+                state = "loading";
+
+                cachedScreenWidth = internal.screenWidth;
+                cachedScreenHeight = internal.screenHeight;
+
+                // Set tile properties
+                var dimensions = calcTileDimensions();
+                properties.x = (dimensions.x);
+                properties.y = (dimensions.y);
+                properties.width = (dimensions.width);
+                properties.height = (dimensions.height);
+                if (internal.data.maxValue === 0) {
+                    properties.tileAlpha = 0;
+                } else {
+                    properties.tileAlpha = (properties.value / internal.data.maxValue);
+                }
+
+                transitionProperties = msngr.copy(properties);
+                transitionProperties.tileAlpha = 0.0;
+
+                loaded = true;
+            },
+            unload: function() {
+                state = "unloading";
+
+                transitionProperties = msngr.copy(properties);
             }
         };
 
-        Object.defineProperty(tile, "state", {
+        Object.defineProperty(tile, "z", {
             get: function() {
-                return mystate;
-            },
-            set: function(input) {
-                switch (input) {
-                    case internal.BoTile.States.initializing:
-                        // We're initializing; nothing will be rendered or updated
-                        // Don't do anything
-                        mystate = internal.BoTile.States.initializing;
-                        properties.borderAlpha = internal.default.borderAlpha;
-                        myTargetState = undefined;
-                        break;
-                    case internal.BoTile.States.loading:
-                        // This means stuff should be initialized; let's set the target
-                        // Also grab values and get ready!
-                        myTargetState = internal.BoTile.States.loading;
-                        properties.alpha = (properties.value / internal.data.maxValue);
-                        tile.update();
-                        break;
-                    case internal.BoTile.States.shown:
-                        // Nothing to do here but some setting of state. Good times
-                        mystate = internal.BoTile.States.shown;
-                        myTargetState = undefined;
-                        tile.update();
-                        break;
-                    case internal.BoTile.States.unloading:
-                        // Alright unloading time; let's animate away
-                        myTargetState = internal.BoTile.States.unloading;
-                        tile.update();
-                        break;
-                    case internal.BoTile.States.unloaded:
-                        // And.....we're dead. Good night everybody!
-                        mystate = internal.BoTile.States.unloaded;
-                        myTargetState = undefined;
-                        internal.objects.background.splice(internal.objects.background.indexOf(tile), 1);
-                        break;
-                    default:
-                        // How the hell did we hit this?
-                        break;
-                };
+                return zlayer;
             }
         });
 
-        tile.state = internal.BoTile.States.initializing;
+        Object.defineProperty(tile, "properties", {
+            get: function() {
+                return properties;
+            }
+        });
 
         return tile;
     };
 
-    internal.BoTile.States = {
-        initializing: "initializing",
-        loading: "loading",
-        shown: "shown",
-        unloading: "unloading",
-        unloaded: "unloaded"
+    internal.BoTile.properties = {
+        tileColor: "#4DD2FF",
+        tileAlpha: 1,
+        borderColor: "#FFFFFF",
+        borderThickness: 10,
+        borderAlpha: 1,
+        borderHighlight: "#A3B3A3"
     };
 
     return { };
@@ -464,7 +627,7 @@ BoPattern.extend(function(internal) {
             // tiles to go away
             var objLen = internal.objects.background.length;
             for (var i = 0; i < objLen; ++i) {
-                internal.objects.background[i].state = internal.BoTile.States.unloading;
+                internal.objects.background[i].unload();
             }
 
             var finish = function() {
@@ -482,6 +645,17 @@ BoPattern.extend(function(internal) {
                         var sLen = data[i].length;
                         for (var j = 0; j < sLen; ++j) {
                             var datum = data[i][j];
+                            if (msngr.isObject(datum)) {
+                                datum.value = datum.value || datum.data;
+                                datum.label = datum.label || datum.value;
+                                delete datum.data;
+                            } else {
+                                datum = {
+                                    value: datum,
+                                    label: String(datum)
+                                };
+                            }
+
                             // Create tile
                             var tile = internal.BoTile(msngr.merge(datum, { position: [i, j] }));
                             objects.push(tile);
@@ -520,7 +694,7 @@ BoPattern.extend(function(internal) {
 
                     var objLen = internal.objects.background.length;
                     for (var i = 0; i < objLen; ++i) {
-                        internal.objects.background[i].state = internal.BoTile.States.loading;
+                        internal.objects.background[i].load();
                     }
                 }
             };

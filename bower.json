@@ -9,7 +9,6 @@
   ],
   "license": "Apache 2.0",
   "ignore": [
-    "dist/",
     ".travis.yml",
     "bower.json",
     "Gruntfile.js",
