@@ -15,12 +15,12 @@ BoPattern.extend(function(internal) {
         var cachedScreenHeight;
 
         var calcTileDimensions = function() {
-            var tileWidth = (internal.screenWidth / internal.data.maxFirstDimension);
-            var tileHeight = (internal.screenHeight / internal.data.maxSecondDimension);
+            var tileWidth = (internal.boundedWidth / internal.data.maxFirstDimension);
+            var tileHeight = (internal.boundedHeight / (internal.data.maxSecondDimension + 1));
 
             return {
-                x: (tileWidth * properties.position[0]),
-                y: (tileHeight * properties.position[1]),
+                x: internal.boundedX1 + (tileWidth * properties.position[0]),
+                y: internal.boundedY1 + (tileHeight * properties.position[1]),
                 width: tileWidth,
                 height: tileHeight
             };
@@ -38,11 +38,12 @@ BoPattern.extend(function(internal) {
         };
 
         var tile = {
+            type: "tile",
             render: function(ctx) {
                 if (loaded) {
                     // Set the boarders
                     ctx.beginPath();
-                    ctx.fillStyle = getProperty("borderColor");
+                    ctx.strokeStyle = getProperty("borderColor");
                     ctx.lineWidth = getProperty("borderThickness");
                     ctx.globalAlpha = getProperty("borderAlpha");
                     ctx.strokeRect(getProperty("x"), getProperty("y"), getProperty("width"), getProperty("height"));
@@ -76,12 +77,11 @@ BoPattern.extend(function(internal) {
                     var dimensions = calcTileDimensions();
                     properties.x = (dimensions.x);
                     properties.y = (dimensions.y);
-                    properties.width = (dimensions.width);
-                    properties.height = (dimensions.height);
+                    properties.width = dimensions.width;
+                    properties.height = dimensions.height;
 
                     // Are we in transition?
                     if (state !== undefined) {
-                        // Well crap
                         transitionProperties.x = properties.x;
                         transitionProperties.y = properties.y;
                         transitionProperties.width = properties.width;
@@ -97,24 +97,14 @@ BoPattern.extend(function(internal) {
                 }
 
                 if (state === "loading") {
-                    if (transitionProperties.tileAlpha >= properties.tileAlpha) {
-                        // We're done here
-                        state = undefined;
-                        transitionProperties = { };
-                    } else {
-                        transitionProperties.tileAlpha += internal.random(.01, .03);
-                    }
+                    state = undefined;
+                    transitionProperties = { };
                 }
 
                 if (state === "unloading") {
-                    if (transitionProperties.tileAlpha <= 0.0) {
-                        // We're done here
-                        state = undefined;
-                        transitionProperties = { };
-                        internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
-                    } else {
-                        transitionProperties.tileAlpha -= internal.random(.01, .03);
-                    }
+                    state = undefined;
+                    transitionProperties = { };
+                    internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
                 }
             },
             load: function() {
@@ -129,7 +119,11 @@ BoPattern.extend(function(internal) {
                 properties.y = (dimensions.y);
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
-                properties.tileAlpha = (properties.value / internal.data.maxValue)
+                if (internal.data.maxValue === 0) {
+                    properties.tileAlpha = 0;
+                } else {
+                    properties.tileAlpha = (properties.value / internal.data.maxValue);
+                }
 
                 transitionProperties = msngr.copy(properties);
                 transitionProperties.tileAlpha = 0.0;
@@ -162,8 +156,8 @@ BoPattern.extend(function(internal) {
         tileColor: "#4DD2FF",
         tileAlpha: 1,
         borderColor: "#FFFFFF",
-        borderThickness: 1,
-        borderAlpha: 0.7,
+        borderThickness: 10,
+        borderAlpha: 1,
         borderHighlight: "#A3B3A3"
     };
 

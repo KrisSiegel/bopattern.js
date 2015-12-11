@@ -24,11 +24,30 @@ BoPattern.extend(function(internal) {
     var update = function() {
         // Normally wouldn't need in an update but it's kinda needed to do measurements
         var ctx = internal.context2D;
+        var ratio = internal.pxRatio;
 
-        internal.canvas.width = internal.parent.getBoundingClientRect().width;
-        internal.canvas.height = internal.parent.getBoundingClientRect().height;
-        internal.screenWidth = internal.canvas.width;
-        internal.screenHeight = internal.canvas.height;
+        // Set canvas size to the container's size
+        var width = internal.parent.getBoundingClientRect().width;
+        var height = internal.parent.getBoundingClientRect().height;
+        if (internal.screenWidth !== width || internal.screenHeight !== height) {
+            internal.canvas.width = (width * ratio);
+            internal.canvas.style.width = (width + "px");
+            internal.screenWidth = width;
+
+            internal.canvas.height = (height * ratio);
+            internal.canvas.style.height = (height + "px");
+            internal.screenHeight = height;
+
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+            // This sets the bounding area's size for rendering the graph tiles
+            internal.boundedWidth = (internal.screenWidth - (internal.screenWidth * .15));
+            internal.boundedHeight = (internal.screenHeight - (internal.screenHeight * .20));
+
+            // This sets the location of the bounded area
+            internal.boundedX1 = ((internal.screenWidth - internal.boundedWidth) / 2);
+            internal.boundedY1 = (((internal.screenHeight - internal.boundedHeight) / 2) + (((internal.screenHeight - internal.boundedHeight) / 2) / 2));
+        }
 
         updateZ("background", ctx);
         updateZ("foreground", ctx);
@@ -37,7 +56,6 @@ BoPattern.extend(function(internal) {
         updateRequest = window.requestAnimationFrame(update);
     };
 
-    update();
 
     internal.startUpdating = function() {
         update();
@@ -46,4 +64,6 @@ BoPattern.extend(function(internal) {
     internal.stopUpdating = function() {
         (window.cancelAnimationFrame || window.mozCancelAnimationFrame)(updateRequest);
     };
+
+    internal.startUpdating();
 });

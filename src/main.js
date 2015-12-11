@@ -6,6 +6,8 @@ var BoPattern = (function() {
     var bo = function(input) {
         // internal object for tracking ALL THE THINGS
         var internal = {
+            UpdatesPerSecond: 60,
+            label: "Pattern of Life",
             objects: {
                 background: [],
                 foreground: [],
@@ -18,8 +20,7 @@ var BoPattern = (function() {
                     y: 0
                 }
             },
-            data: {},
-            grid: [[]]
+            data: {}
         };
 
         // Validate input
@@ -59,6 +60,20 @@ var BoPattern = (function() {
 
         internal.context2D = internal.canvas.getContext("2d");
 
+        // Gets the pixel ratio for high definition monitors
+        Object.defineProperty(internal, "pxRatio", {
+            get: function() {
+                var dpr = window.devicePixelRatio || 1;
+                var bsr = internal.context2D.backingStorePixelRatio ||
+                    internal.context2D.webkitBackingStorePixelRatio ||
+                    internal.context2D.mozBackingStorePixelRatio ||
+                    internal.context2D.msBackingStorePixelRatio ||
+                    internal.context2D.backingStorePixelRatio || 1;
+
+                return (dpr / bsr);
+            }
+        });
+
         // Verify setup since it should be theoretically done
         if (!msngr.exist(internal.canvas) || !msngr.exist(internal.context2D)) {
             throw "[BoPattern.js] Welp you passed the first set of validators but I still failed to get the canvas :(";
@@ -66,6 +81,33 @@ var BoPattern = (function() {
 
         // Set parent
         internal.parent = internal.canvas.parentNode;
+
+        Object.defineProperty(internal, "zlevels", {
+            get: function() {
+                return Object.keys(internal.objects);
+            }
+        });
+
+        // Simple random range
+        internal.random = function(min, max) {
+            return (Math.random() * (max - min) + min);
+        };
+
+        // Add the ability to add items to be rendered
+        internal.addObject = function(zkey, obj) {
+            if (msngr.exist(obj) && msngr.exist(obj.render)) {
+                internal.objects[zkey].push(obj);
+            }
+        };
+
+        // Clear the array
+        internal.clearObjects = function(zkey, type) {
+            for (var i = 0; i < internal.objects[zkey].length; ++i) {
+                if (type !== undefined && internal.objects[zkey][i].type === type) {
+                    internal.objects[zkey][i].unload();
+                }
+            }
+        };
 
         var boObj = {};
 
@@ -93,7 +135,7 @@ var BoPattern = (function() {
                     });
                 }
                 if (input === false) {
-                    internal.clearObjects("overlay");
+                    internal.clearObjects("overlay", "bodebug");
                     delete boObj.internal;
                 }
             },
@@ -102,27 +144,26 @@ var BoPattern = (function() {
             }
         });
 
-        // Simple random range
-        internal.random = function(min, max) {
-            return (Math.random() * (max - min) + min);
-        };
-
-        // Add the ability to add items to be rendered
-        internal.addObject = function(zkey, obj) {
-            if (msngr.exist(obj) && msngr.exist(obj.render)) {
-                internal.objects[zkey].push(obj);
+        Object.defineProperty(boObj, "label", {
+            get: function() {
+                return internal.label;
+            },
+            set: function(txt) {
+                internal.label = txt;
             }
-        };
-
-        // Clear the array
-        internal.clearObjects = function(zkey) {
-            // Note: we need to make sure any existing references to this array
-            // are affected which means we MUST modify the original.
-            // This is faster than I initially expected http://jsperf.com/array-destroy/151
-            (internal.objects[zkey] || []).splice(0, (internal.objects[zkey] || []).length);
-        };
+        });
 
         internal.addObject("overlay", internal.BoEmpty());
+        internal.addObject("overlay", internal.BoLabel());
+
+        // Stop rendering if the user has unfocused the window
+        document.addEventListener("visibilitychange", function(e) {
+            if (document.hidden) {
+                internal.stopRendering();
+            } else {
+                internal.startRendering();
+            }
+        });
 
         // Return our brand new instance of BoPattern.js!!! Aww yiss!
         return boObj;

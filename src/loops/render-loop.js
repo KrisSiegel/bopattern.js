@@ -25,8 +25,6 @@ BoPattern.extend(function(internal) {
         renderRequest = window.requestAnimationFrame(render);
     };
 
-    render();
-
     internal.startRendering = function() {
         render();
     };
@@ -34,4 +32,6 @@ BoPattern.extend(function(internal) {
     internal.stopRendering = function() {
         (window.cancelAnimationFrame || window.mozCancelAnimationFrame)(renderRequest);
     };
+
+    internal.startRendering();
 });

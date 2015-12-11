@@ -30,6 +30,17 @@ BoPattern.extend(function(internal) {
                         var sLen = data[i].length;
                         for (var j = 0; j < sLen; ++j) {
                             var datum = data[i][j];
+                            if (msngr.isObject(datum)) {
+                                datum.value = datum.value || datum.data;
+                                datum.label = datum.label || datum.value;
+                                delete datum.data;
+                            } else {
+                                datum = {
+                                    value: datum,
+                                    label: String(datum)
+                                };
+                            }
+
                             // Create tile
                             var tile = internal.BoTile(msngr.merge(datum, { position: [i, j] }));
                             objects.push(tile);

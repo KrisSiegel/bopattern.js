@@ -10,6 +10,7 @@ BoPattern.extend(function(internal) {
         var y;
 
         var me = {
+            type: "boempty",
             render: function(ctx) {
                 if (x && y) {
                     ctx.font = "16pt Calibri";
