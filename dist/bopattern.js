@@ -478,10 +478,12 @@ BoPattern.extend(function(internal) {
         var calcTileDimensions = function() {
             var tileWidth = (internal.boundedWidth / internal.data.maxFirstDimension);
             var tileHeight = (internal.boundedHeight / (internal.data.maxSecondDimension + 1));
+            var x = internal.boundedX1 + (tileWidth * properties.position[0]);
+            var y = internal.boundedY1 + (tileHeight * properties.position[1]);
 
             return {
-                x: internal.boundedX1 + (tileWidth * properties.position[0]),
-                y: internal.boundedY1 + (tileHeight * properties.position[1]),
+                x: x,
+                y: y,
                 width: tileWidth,
                 height: tileHeight
             };
@@ -519,15 +521,14 @@ BoPattern.extend(function(internal) {
                 }
             },
             update: function() {
+                mouseOver = false;
                 if (internal.user.mousePosition.x >= properties.x) {
-                    if (internal.user.mousePosition.x <= (properties.x + 1 * properties.width)) {
+                    if (internal.user.mousePosition.x <= (properties.x + properties.width)) {
                         // It's in our horizontal!
                         if (internal.user.mousePosition.y >= properties.y) {
-                            if (internal.user.mousePosition.y <= (properties.y + 1 * properties.height)) {
+                            if (internal.user.mousePosition.y <= (properties.y + properties.height)) {
                                 // IT'S IN ME!
                                 mouseOver = true;
-                            } else {
-                                mouseOver = false;
                             }
                         }
                     }
@@ -555,17 +556,29 @@ BoPattern.extend(function(internal) {
 
                 if (state === undefined) {
                     // Default state
+                    return undefined;
                 }
 
                 if (state === "loading") {
-                    state = undefined;
-                    transitionProperties = { };
+                    if (transitionProperties.tileAlpha >= properties.tileAlpha) {
+                        state = undefined;
+                        transitionProperties = { };
+                        return undefined;
+                    }
+                    if (transitionProperties.tileAlpha.toFixed === undefined) {
+                        console.log(transitionProperties.tileAlpha);
+                    }
+                    transitionProperties.tileAlpha = transitionProperties.tileAlpha + internal.random(0.02, 0.04);
                 }
 
                 if (state === "unloading") {
-                    state = undefined;
-                    transitionProperties = { };
-                    internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
+                    if (transitionProperties.tileAlpha <= 0.0) {
+                        state = undefined;
+                        transitionProperties = { };
+                        internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
+                        return undefined;
+                    }
+                    transitionProperties.tileAlpha = transitionProperties.tileAlpha - internal.random(0.08, 0.12);
                 }
             },
             load: function() {
@@ -581,7 +594,7 @@ BoPattern.extend(function(internal) {
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
                 if (internal.data.maxValue === 0) {
-                    properties.tileAlpha = 0;
+                    properties.tileAlpha = 0.0;
                 } else {
                     properties.tileAlpha = (properties.value / internal.data.maxValue);
                 }
