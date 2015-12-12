@@ -6,7 +6,6 @@ var BoPattern = (function() {
     var bo = function(input) {
         // internal object for tracking ALL THE THINGS
         var internal = {
-            UpdatesPerSecond: 60,
             label: "Pattern of Life",
             objects: {
                 background: [],
@@ -105,6 +104,8 @@ var BoPattern = (function() {
             for (var i = 0; i < internal.objects[zkey].length; ++i) {
                 if (type !== undefined && internal.objects[zkey][i].type === type) {
                     internal.objects[zkey][i].unload();
+                } else if (type === undefined) {
+                    internal.objects[zkey][i].unload();
                 }
             }
         };
@@ -164,6 +165,17 @@ var BoPattern = (function() {
                 internal.startRendering();
             }
         });
+
+        boObj.removeSelf = function() {
+            internal.clearObjects("background");
+            internal.clearObjects("foreground");
+            internal.clearObjects("overlay");
+
+            internal.stopUpdating();
+            internal.stopRendering();
+
+            internal.parent.removeChild(internal.canvas);
+        };
 
         // Return our brand new instance of BoPattern.js!!! Aww yiss!
         return boObj;
@@ -387,7 +399,7 @@ BoPattern.extend(function(internal) {
 
             },
             unload: function() {
-                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
             }
         };
 
@@ -617,8 +629,7 @@ BoPattern.extend(function(internal) {
     "use strict";
 
     return {
-        load: function(data, delay) {
-            delay = delay || 0;
+        load: function(data) {
             if (!msngr.exist(data)) {
                 return undefined;
             }

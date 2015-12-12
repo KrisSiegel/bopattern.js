@@ -27,7 +27,7 @@ BoPattern.extend(function(internal) {
 
             },
             unload: function() {
-                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
             }
         };
 

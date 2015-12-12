@@ -2,8 +2,7 @@ BoPattern.extend(function(internal) {
     "use strict";
 
     return {
-        load: function(data, delay) {
-            delay = delay || 0;
+        load: function(data) {
             if (!msngr.exist(data)) {
                 return undefined;
             }
