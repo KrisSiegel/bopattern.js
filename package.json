@@ -21,6 +21,7 @@
     "license": "Apache 2.0",
     "devDependencies": {
         "async": "1.5.0",
+        "bower": "1.7.1",
         "chai": "3.4.1",
         "grunt": "0.4.5",
         "grunt-available-tasks": "0.6.1",
@@ -32,7 +33,7 @@
         "mocha": "2.3.4"
     },
     "scripts": {
-        "postinstall": "bower install",
+        "postinstall": "./node_modules/bower/bin/bower install",
         "test": "node -e \"var g = require('grunt'); g.cli.tasks = ['test']; g.cli();\"",
         "build": "node -e \"var g = require('grunt'); g.cli.tasks = ['build']; g.cli();\""
     }
