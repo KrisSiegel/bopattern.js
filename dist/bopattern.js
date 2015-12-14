@@ -6,7 +6,6 @@ var BoPattern = (function() {
     var bo = function(input) {
         // internal object for tracking ALL THE THINGS
         var internal = {
-            UpdatesPerSecond: 60,
             label: "Pattern of Life",
             objects: {
                 background: [],
@@ -105,6 +104,8 @@ var BoPattern = (function() {
             for (var i = 0; i < internal.objects[zkey].length; ++i) {
                 if (type !== undefined && internal.objects[zkey][i].type === type) {
                     internal.objects[zkey][i].unload();
+                } else if (type === undefined) {
+                    internal.objects[zkey][i].unload();
                 }
             }
         };
@@ -164,6 +165,17 @@ var BoPattern = (function() {
                 internal.startRendering();
             }
         });
+
+        boObj.removeSelf = function() {
+            internal.clearObjects("background");
+            internal.clearObjects("foreground");
+            internal.clearObjects("overlay");
+
+            internal.stopUpdating();
+            internal.stopRendering();
+
+            internal.parent.removeChild(internal.canvas);
+        };
 
         // Return our brand new instance of BoPattern.js!!! Aww yiss!
         return boObj;
@@ -387,7 +399,7 @@ BoPattern.extend(function(internal) {
 
             },
             unload: function() {
-                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
             }
         };
 
@@ -466,10 +478,12 @@ BoPattern.extend(function(internal) {
         var calcTileDimensions = function() {
             var tileWidth = (internal.boundedWidth / internal.data.maxFirstDimension);
             var tileHeight = (internal.boundedHeight / (internal.data.maxSecondDimension + 1));
+            var x = internal.boundedX1 + (tileWidth * properties.position[0]);
+            var y = internal.boundedY1 + (tileHeight * properties.position[1]);
 
             return {
-                x: internal.boundedX1 + (tileWidth * properties.position[0]),
-                y: internal.boundedY1 + (tileHeight * properties.position[1]),
+                x: x,
+                y: y,
                 width: tileWidth,
                 height: tileHeight
             };
@@ -507,15 +521,14 @@ BoPattern.extend(function(internal) {
                 }
             },
             update: function() {
+                mouseOver = false;
                 if (internal.user.mousePosition.x >= properties.x) {
-                    if (internal.user.mousePosition.x <= (properties.x + 1 * properties.width)) {
+                    if (internal.user.mousePosition.x <= (properties.x + properties.width)) {
                         // It's in our horizontal!
                         if (internal.user.mousePosition.y >= properties.y) {
-                            if (internal.user.mousePosition.y <= (properties.y + 1 * properties.height)) {
+                            if (internal.user.mousePosition.y <= (properties.y + properties.height)) {
                                 // IT'S IN ME!
                                 mouseOver = true;
-                            } else {
-                                mouseOver = false;
                             }
                         }
                     }
@@ -543,17 +556,29 @@ BoPattern.extend(function(internal) {
 
                 if (state === undefined) {
                     // Default state
+                    return undefined;
                 }
 
                 if (state === "loading") {
-                    state = undefined;
-                    transitionProperties = { };
+                    if (transitionProperties.tileAlpha >= properties.tileAlpha) {
+                        state = undefined;
+                        transitionProperties = { };
+                        return undefined;
+                    }
+                    if (transitionProperties.tileAlpha.toFixed === undefined) {
+                        console.log(transitionProperties.tileAlpha);
+                    }
+                    transitionProperties.tileAlpha = transitionProperties.tileAlpha + internal.random(0.02, 0.04);
                 }
 
                 if (state === "unloading") {
-                    state = undefined;
-                    transitionProperties = { };
-                    internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
+                    if (transitionProperties.tileAlpha <= 0.0) {
+                        state = undefined;
+                        transitionProperties = { };
+                        internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(tile), 1);
+                        return undefined;
+                    }
+                    transitionProperties.tileAlpha = transitionProperties.tileAlpha - internal.random(0.08, 0.12);
                 }
             },
             load: function() {
@@ -569,7 +594,7 @@ BoPattern.extend(function(internal) {
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
                 if (internal.data.maxValue === 0) {
-                    properties.tileAlpha = 0;
+                    properties.tileAlpha = 0.0;
                 } else {
                     properties.tileAlpha = (properties.value / internal.data.maxValue);
                 }
@@ -617,8 +642,7 @@ BoPattern.extend(function(internal) {
     "use strict";
 
     return {
-        load: function(data, delay) {
-            delay = delay || 0;
+        load: function(data) {
             if (!msngr.exist(data)) {
                 return undefined;
             }

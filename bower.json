@@ -14,7 +14,8 @@
     "Gruntfile.js",
     "src/",
     "node_modules/",
-    "ext-lib/"
+    "ext-lib/",
+    "test/"
   ],
   "dependencies": {
     "msngr": "3.2.2"

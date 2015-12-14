@@ -5,3 +5,4 @@ Gruntfile.js
 src/
 node_modules/
 ext-lib/
+test/

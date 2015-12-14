@@ -104,6 +104,8 @@ var BoPattern = (function() {
             for (var i = 0; i < internal.objects[zkey].length; ++i) {
                 if (type !== undefined && internal.objects[zkey][i].type === type) {
                     internal.objects[zkey][i].unload();
+                } else if (type === undefined) {
+                    internal.objects[zkey][i].unload();
                 }
             }
         };
@@ -163,6 +165,17 @@ var BoPattern = (function() {
                 internal.startRendering();
             }
         });
+
+        boObj.removeSelf = function() {
+            internal.clearObjects("background");
+            internal.clearObjects("foreground");
+            internal.clearObjects("overlay");
+
+            internal.stopUpdating();
+            internal.stopRendering();
+
+            internal.parent.removeChild(internal.canvas);
+        };
 
         // Return our brand new instance of BoPattern.js!!! Aww yiss!
         return boObj;
