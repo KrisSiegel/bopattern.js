@@ -102,9 +102,7 @@ var BoPattern = (function() {
         // Clear the array
         internal.clearObjects = function(zkey, type) {
             for (var i = 0; i < internal.objects[zkey].length; ++i) {
-                if (type !== undefined && internal.objects[zkey][i].type === type) {
-                    internal.objects[zkey][i].unload();
-                } else if (type === undefined) {
+                if (type === undefined || internal.objects[zkey][i].type === type) {
                     internal.objects[zkey][i].unload();
                 }
             }
@@ -155,7 +153,7 @@ var BoPattern = (function() {
         });
 
         internal.addObject("overlay", internal.BoEmpty());
-        internal.addObject("overlay", internal.BoLabel());
+        internal.addObject("overlay", internal.BoTitle());
 
         // Stop rendering if the user has unfocused the window
         document.addEventListener("visibilitychange", function(e) {

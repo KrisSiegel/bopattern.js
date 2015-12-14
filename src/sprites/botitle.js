@@ -1,19 +1,33 @@
 BoPattern.extend(function(internal) {
     "use strict";
 
-    internal.BoLabel = function() {
+    // Static elements for BoLabel
+    var external = { };
+    Object.defineProperty(external, "title", {
+        get: function() {
+            return internal.title;
+        },
+        set: function(input) {
+            if (msngr.isString(input)) {
+                internal.title = input;
+            }
+        }
+    })
+
+    // Returns an instance of BoLabel
+    internal.BoTitle = function() {
         var zlayer = "overlay";
         var x = 0;
         var y = 0;
 
         var me = {
-            type: "bolabel",
+            type: "botitle",
             render: function(ctx) {
                 ctx.beginPath();
-                ctx.font = "16pt sans-serif";
-                ctx.fillStyle = "#000000";
+                ctx.font = internal.BoTitle.properties.font;
+                ctx.fillStyle = internal.BoTitle.properties.color;
                 ctx.globalAlpha = 1;
-                ctx.textAlign = "left";
+                ctx.textAlign = "left"; // This isn't exposed as it's more related to rendering than anything stylish
                 ctx.fillText(internal.label, x, y);
                 ctx.closePath();
             },
@@ -39,5 +53,11 @@ BoPattern.extend(function(internal) {
         return me;
     };
 
-    return { };
+    internal.BoTitle.properties = {
+        font: "16pt sans-serif",
+        color: "#000000",
+        alpha: 1
+    };
+
+    return external;
 });

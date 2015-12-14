@@ -102,9 +102,7 @@ var BoPattern = (function() {
         // Clear the array
         internal.clearObjects = function(zkey, type) {
             for (var i = 0; i < internal.objects[zkey].length; ++i) {
-                if (type !== undefined && internal.objects[zkey][i].type === type) {
-                    internal.objects[zkey][i].unload();
-                } else if (type === undefined) {
+                if (type === undefined || internal.objects[zkey][i].type === type) {
                     internal.objects[zkey][i].unload();
                 }
             }
@@ -155,7 +153,7 @@ var BoPattern = (function() {
         });
 
         internal.addObject("overlay", internal.BoEmpty());
-        internal.addObject("overlay", internal.BoLabel());
+        internal.addObject("overlay", internal.BoTitle());
 
         // Stop rendering if the user has unfocused the window
         document.addEventListener("visibilitychange", function(e) {
@@ -314,9 +312,9 @@ BoPattern.extend(function(internal) {
                 // Display text showing mouse's X and Y coordinates
                 if (updatedAtLeastOnce) {
                     ctx.beginPath();
-                    ctx.font = "10pt Sans-serif";
-                    ctx.fillStyle = "black";
-                    ctx.globalAlpha = 1;
+                    ctx.font = internal.BoDebug.properties.font;
+                    ctx.fillStyle = internal.BoDebug.properties.color;
+                    ctx.globalAlpha = internal.BoDebug.properties.textAlpha;
 
                     ctx.textAlign = "left";
                     ctx.fillText(texts.tiles.txt, texts.tiles.x, texts.tiles.y);
@@ -329,9 +327,9 @@ BoPattern.extend(function(internal) {
 
                 // Display the bounded area where the graph should be contained within
                 ctx.beginPath();
-                ctx.strokeStyle = "#000000";
-                ctx.globalAlpha = 1;
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = internal.BoDebug.properties.borderColor;
+                ctx.globalAlpha = internal.BoDebug.properties.borderAlpha;
+                ctx.lineWidth = internal.BoDebug.properties.borderThickness;
                 ctx.strokeRect(internal.boundedX1, internal.boundedY1, internal.boundedWidth, internal.boundedHeight);
                 ctx.closePath();
             },
@@ -358,13 +356,16 @@ BoPattern.extend(function(internal) {
             }
         };
 
-        Object.defineProperty(me, "z", {
-            get: function() {
-                return zlayer;
-            }
-        });
-
         return me;
+    };
+
+    internal.BoDebug.properties = {
+        font: "10pt Sans-serif",
+        color: "#000000",
+        textAlpha: 1,
+        borderColor: "#000000",
+        borderAlpha: 1,
+        borderThickness: 1
     };
 
     return { };
@@ -385,8 +386,8 @@ BoPattern.extend(function(internal) {
             type: "boempty",
             render: function(ctx) {
                 if (x && y) {
-                    ctx.font = "16pt Calibri";
-                    ctx.fillStyle = "black";
+                    ctx.font = internal.BoEmpty.properties.font;
+                    ctx.fillStyle = internal.BoEmpty.properties.color;
                     ctx.fillText(txt, x, y);
                 }
             },
@@ -412,48 +413,9 @@ BoPattern.extend(function(internal) {
         return me;
     };
 
-    return { };
-});
-
-BoPattern.extend(function(internal) {
-    "use strict";
-
-    internal.BoLabel = function() {
-        var zlayer = "overlay";
-        var x = 0;
-        var y = 0;
-
-        var me = {
-            type: "bolabel",
-            render: function(ctx) {
-                ctx.beginPath();
-                ctx.font = "16pt sans-serif";
-                ctx.fillStyle = "#000000";
-                ctx.globalAlpha = 1;
-                ctx.textAlign = "left";
-                ctx.fillText(internal.label, x, y);
-                ctx.closePath();
-            },
-            update: function(ctx) {
-                var measure = ctx.measureText(internal.label);
-                x = ((internal.screenWidth / 2) - (measure.width));
-                y = (internal.boundedY1 / 2);
-            },
-            load: function() {
-
-            },
-            unload: function() {
-                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
-            }
-        };
-
-        Object.defineProperty(me, "z", {
-            get: function() {
-                return zlayer;
-            }
-        });
-
-        return me;
+    internal.BoEmpty.properties = {
+        font: "16pt Calibri",
+        color: "#000000"
     };
 
     return { };
@@ -633,6 +595,70 @@ BoPattern.extend(function(internal) {
     };
 
     return { };
+});
+
+BoPattern.extend(function(internal) {
+    "use strict";
+
+    // Static elements for BoLabel
+    var external = { };
+    Object.defineProperty(external, "title", {
+        get: function() {
+            return internal.title;
+        },
+        set: function(input) {
+            if (msngr.isString(input)) {
+                internal.title = input;
+            }
+        }
+    })
+
+    // Returns an instance of BoLabel
+    internal.BoTitle = function() {
+        var zlayer = "overlay";
+        var x = 0;
+        var y = 0;
+
+        var me = {
+            type: "botitle",
+            render: function(ctx) {
+                ctx.beginPath();
+                ctx.font = internal.BoTitle.properties.font;
+                ctx.fillStyle = internal.BoTitle.properties.color;
+                ctx.globalAlpha = 1;
+                ctx.textAlign = "left"; // This isn't exposed as it's more related to rendering than anything stylish
+                ctx.fillText(internal.label, x, y);
+                ctx.closePath();
+            },
+            update: function(ctx) {
+                var measure = ctx.measureText(internal.label);
+                x = ((internal.screenWidth / 2) - (measure.width));
+                y = (internal.boundedY1 / 2);
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
+            }
+        };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return zlayer;
+            }
+        });
+
+        return me;
+    };
+
+    internal.BoTitle.properties = {
+        font: "16pt sans-serif",
+        color: "#000000",
+        alpha: 1
+    };
+
+    return external;
 });
 
 BoPattern.extend(function(internal) {

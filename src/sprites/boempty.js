@@ -13,8 +13,8 @@ BoPattern.extend(function(internal) {
             type: "boempty",
             render: function(ctx) {
                 if (x && y) {
-                    ctx.font = "16pt Calibri";
-                    ctx.fillStyle = "black";
+                    ctx.font = internal.BoEmpty.properties.font;
+                    ctx.fillStyle = internal.BoEmpty.properties.color;
                     ctx.fillText(txt, x, y);
                 }
             },
@@ -38,6 +38,11 @@ BoPattern.extend(function(internal) {
         });
 
         return me;
+    };
+
+    internal.BoEmpty.properties = {
+        font: "16pt Calibri",
+        color: "#000000"
     };
 
     return { };

@@ -13,9 +13,9 @@ BoPattern.extend(function(internal) {
                 // Display text showing mouse's X and Y coordinates
                 if (updatedAtLeastOnce) {
                     ctx.beginPath();
-                    ctx.font = "10pt Sans-serif";
-                    ctx.fillStyle = "black";
-                    ctx.globalAlpha = 1;
+                    ctx.font = internal.BoDebug.properties.font;
+                    ctx.fillStyle = internal.BoDebug.properties.color;
+                    ctx.globalAlpha = internal.BoDebug.properties.textAlpha;
 
                     ctx.textAlign = "left";
                     ctx.fillText(texts.tiles.txt, texts.tiles.x, texts.tiles.y);
@@ -28,9 +28,9 @@ BoPattern.extend(function(internal) {
 
                 // Display the bounded area where the graph should be contained within
                 ctx.beginPath();
-                ctx.strokeStyle = "#000000";
-                ctx.globalAlpha = 1;
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = internal.BoDebug.properties.borderColor;
+                ctx.globalAlpha = internal.BoDebug.properties.borderAlpha;
+                ctx.lineWidth = internal.BoDebug.properties.borderThickness;
                 ctx.strokeRect(internal.boundedX1, internal.boundedY1, internal.boundedWidth, internal.boundedHeight);
                 ctx.closePath();
             },
@@ -57,13 +57,16 @@ BoPattern.extend(function(internal) {
             }
         };
 
-        Object.defineProperty(me, "z", {
-            get: function() {
-                return zlayer;
-            }
-        });
-
         return me;
+    };
+
+    internal.BoDebug.properties = {
+        font: "10pt Sans-serif",
+        color: "#000000",
+        textAlpha: 1,
+        borderColor: "#000000",
+        borderAlpha: 1,
+        borderThickness: 1
     };
 
     return { };
