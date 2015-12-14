@@ -67,7 +67,7 @@ var BoPattern = (function() {
                     internal.context2D.webkitBackingStorePixelRatio ||
                     internal.context2D.mozBackingStorePixelRatio ||
                     internal.context2D.msBackingStorePixelRatio ||
-                    internal.context2D.backingStorePixelRatio || 1;
+                    internal.context2D.oBackingStorePixelRatio || 1;
 
                 return (dpr / bsr);
             }
@@ -564,9 +564,6 @@ BoPattern.extend(function(internal) {
                         state = undefined;
                         transitionProperties = { };
                         return undefined;
-                    }
-                    if (transitionProperties.tileAlpha.toFixed === undefined) {
-                        console.log(transitionProperties.tileAlpha);
                     }
                     transitionProperties.tileAlpha = transitionProperties.tileAlpha + internal.random(0.02, 0.04);
                 }

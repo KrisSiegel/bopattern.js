@@ -67,7 +67,7 @@ var BoPattern = (function() {
                     internal.context2D.webkitBackingStorePixelRatio ||
                     internal.context2D.mozBackingStorePixelRatio ||
                     internal.context2D.msBackingStorePixelRatio ||
-                    internal.context2D.backingStorePixelRatio || 1;
+                    internal.context2D.oBackingStorePixelRatio || 1;
 
                 return (dpr / bsr);
             }

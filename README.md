@@ -64,7 +64,7 @@ console.log(bopat.internal); // Prints internal object
 ```
 
 ## Extending
-BoPattern has a handy way of extension. There is a ```BoPattern.extend(fn)``` method which will execute at the initialization of each instance of a BoPattern. The function executed is given access to the internal data structure that allows access to real time updated constraints and information about the current rendering.
+BoPattern supports adding extensions that run in each instance of the control (as opposed to a more global level). There is a ```BoPattern.extend(fn)``` method which will execute at the initialization of each instance of a BoPattern. The function executed is given access to the internal data structure that allows access to real time updated constraints and information about the current rendering.
 
 This essentially allows you to extend BoPattern to do just about anything you want. Let's take a look at an example where you can extend BoPattern to draw a rectangle on top of everything just...because.
 
