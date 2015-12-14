@@ -1,0 +1,8 @@
+dist/
+.travis.yml
+bower.json
+Gruntfile.js
+src/
+node_modules/
+ext-lib/
+test/
