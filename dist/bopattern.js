@@ -3,7 +3,7 @@ var BoPattern = (function() {
     var extenders = []; // holds all extensions to be applied to each new BoPattern instance
 
     // The main function that is executed when a developer calls BoPattern(); returns a new instance
-    var bo = function(input) {
+    var bo = function(input, options) {
         // internal object for tracking ALL THE THINGS
         var internal = {
             label: "Pattern of Life",
@@ -19,7 +19,13 @@ var BoPattern = (function() {
                     y: 0
                 }
             },
-            data: {}
+            data: {},
+            eventHandlers: {},
+            config: msngr.merge({
+                tooltip: {
+                    display: true
+                }
+            }, options)
         };
 
         // Validate input
@@ -110,6 +116,32 @@ var BoPattern = (function() {
 
         var boObj = {};
 
+        // Triggers an event
+        internal.trigger = function(event, obj) {
+            if (internal.eventHandlers[event] && internal.eventHandlers[event].length > 0) {
+                for (var i = 0; i < internal.eventHandlers[event].length; ++i) {
+                    internal.eventHandlers[event][i](obj);
+                }
+            }
+        };
+
+        // Registers an event handler
+        internal.on = function(event, handler) {
+            if (internal.eventHandlers[event] === undefined) {
+                internal.eventHandlers[event] = [];
+            }
+            internal.eventHandlers[event].push(handler);
+        };
+        boObj.on = internal.on;
+
+        // Unregisters an event handler
+        internal.off = function(event, handler) {
+            if (internal.eventHandlers[event] !== undefined) {
+                internal.eventHandlers[event].splice(internal.eventHandlers[event].indexOf(handler), 1);
+            }
+        };
+        boObj.off = internal.off;
+
         // Apply all extensions to the new instance
         for (var i = 0; i < extenders.length; ++i) {
             var obj = extenders[i];
@@ -152,17 +184,18 @@ var BoPattern = (function() {
             }
         });
 
-        internal.addObject("overlay", internal.BoEmpty());
-        internal.addObject("overlay", internal.BoTitle());
-
-        // Stop rendering if the user has unfocused the window
-        document.addEventListener("visibilitychange", function(e) {
-            if (document.hidden) {
-                internal.stopRendering();
-            } else {
-                internal.startRendering();
+        Object.defineProperty(boObj, "config", {
+            get: function() {
+                return internal.config;
+            },
+            set: function(input) {
+                internal.config = msngr.merge(internal.config, input);
+                internal.trigger("configChanged", internal.config);
             }
         });
+
+        internal.addObject("overlay", internal.BoEmpty());
+        internal.addObject("overlay", internal.BoTitle());
 
         boObj.removeSelf = function() {
             internal.clearObjects("background");
@@ -171,6 +204,8 @@ var BoPattern = (function() {
 
             internal.stopUpdating();
             internal.stopRendering();
+
+            delete boObj.load;
 
             internal.parent.removeChild(internal.canvas);
         };
@@ -224,6 +259,15 @@ BoPattern.extend(function(internal) {
         (window.cancelAnimationFrame || window.mozCancelAnimationFrame)(renderRequest);
     };
 
+    // Stop rendering if the user has unfocused the window
+    document.addEventListener("visibilitychange", function(e) {
+        if (document.hidden) {
+            internal.stopRendering();
+        } else {
+            internal.startRendering();
+        }
+    });
+
     internal.startRendering();
 });
 
@@ -276,6 +320,10 @@ BoPattern.extend(function(internal) {
             // This sets the location of the bounded area
             internal.boundedX1 = ((internal.screenWidth - internal.boundedWidth) / 2);
             internal.boundedY1 = (((internal.screenHeight - internal.boundedHeight) / 2) + (((internal.screenHeight - internal.boundedHeight) / 2) / 2));
+
+            // This sets the absolute location of elements as per the whole window (not just the cancas)
+            internal.absoluteLeft = internal.canvas.offsetLeft;
+            internal.absoluteTop = internal.canvas.offsetTop;
         }
 
         updateZ("background", ctx);
@@ -483,17 +531,35 @@ BoPattern.extend(function(internal) {
                 }
             },
             update: function() {
-                mouseOver = false;
+                var hitInThisIteration = false;
                 if (internal.user.mousePosition.x >= properties.x) {
                     if (internal.user.mousePosition.x <= (properties.x + properties.width)) {
                         // It's in our horizontal!
                         if (internal.user.mousePosition.y >= properties.y) {
                             if (internal.user.mousePosition.y <= (properties.y + properties.height)) {
                                 // IT'S IN ME!
+                                if (mouseOver === false) {
+                                    // State just changed; trigger intensifying!
+                                    internal.trigger("hover", {
+                                        x: getProperty("x"),
+                                        y: getProperty("y"),
+                                        absX: internal.absoluteLeft + getProperty("x"),
+                                        absY: internal.absoluteTop + getProperty("y"),
+                                        width: getProperty("width"),
+                                        height: getProperty("height"),
+                                        label: getProperty("label")
+                                    });
+                                }
                                 mouseOver = true;
+                                hitInThisIteration = true;
                             }
                         }
                     }
+                }
+
+                // Do this so I'm not setting mouseOver = false 4 freaking times
+                if (hitInThisIteration !== true) {
+                    mouseOver = false;
                 }
 
                 if (cachedScreenWidth !== internal.screenWidth || cachedScreenHeight !== internal.screenHeight) {
@@ -694,7 +760,7 @@ BoPattern.extend(function(internal) {
                             var datum = data[i][j];
                             if (msngr.isObject(datum)) {
                                 datum.value = datum.value || datum.data;
-                                datum.label = datum.label || datum.value;
+                                datum.label = datum.label || datum.value.toFixed(2);
                                 delete datum.data;
                             } else {
                                 datum = {

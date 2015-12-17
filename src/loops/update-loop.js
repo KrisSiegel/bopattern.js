@@ -47,6 +47,10 @@ BoPattern.extend(function(internal) {
             // This sets the location of the bounded area
             internal.boundedX1 = ((internal.screenWidth - internal.boundedWidth) / 2);
             internal.boundedY1 = (((internal.screenHeight - internal.boundedHeight) / 2) + (((internal.screenHeight - internal.boundedHeight) / 2) / 2));
+
+            // This sets the absolute location of elements as per the whole window (not just the cancas)
+            internal.absoluteLeft = internal.canvas.offsetLeft;
+            internal.absoluteTop = internal.canvas.offsetTop;
         }
 
         updateZ("background", ctx);

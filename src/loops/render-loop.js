@@ -33,5 +33,14 @@ BoPattern.extend(function(internal) {
         (window.cancelAnimationFrame || window.mozCancelAnimationFrame)(renderRequest);
     };
 
+    // Stop rendering if the user has unfocused the window
+    document.addEventListener("visibilitychange", function(e) {
+        if (document.hidden) {
+            internal.stopRendering();
+        } else {
+            internal.startRendering();
+        }
+    });
+
     internal.startRendering();
 });

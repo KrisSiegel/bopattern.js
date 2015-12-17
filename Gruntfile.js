@@ -4,6 +4,7 @@ module.exports = (function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-mocha-phantomjs');
     grunt.loadNpmTasks('grunt-available-tasks');
@@ -26,11 +27,15 @@ module.exports = (function(grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        clean: ["./dist/bopattern.js", "./dist/bopattern.min.js"],
+        clean: ["./dist/*"],
         concat: {
-            dist: {
+            js: {
                 src: paths,
                 dest: "./dist/bopattern.js"
+            },
+            css: {
+                src: ["css/*.css"],
+                dest: "./dist/bopattern.css"
             }
         },
         uglify: {
@@ -39,6 +44,15 @@ module.exports = (function(grunt) {
                 files: {
                     "./dist/bopattern.min.js": paths
                 }
+            }
+        },
+        cssmin: {
+            target: {
+                files: [{
+                    expand: false,
+                    src: ["css/*.css"],
+                    dest: "./dist/bopattern.min.css"
+                }]
             }
         },
         mocha_phantomjs: {
@@ -163,7 +177,7 @@ module.exports = (function(grunt) {
     	to be run by the developer.
     */
 
-    grunt.registerTask("build", "Cleans and builds .js", ["header:building", "clean", "concat", "uglify:minify", "setRunner"]);
+    grunt.registerTask("build", "Cleans and builds .js", ["header:building", "clean", "concat", "uglify:minify", "cssmin", "setRunner"]);
 
     grunt.registerTask("test", "Cleans, builds and runs mocha unit tests through phantom.js", ["build", "header:clientTesting", "mocha_phantomjs"]);
 

@@ -17,18 +17,20 @@
             border: 1px solid #343434;
         }
       </style>
+      <link rel="stylesheet" type="text/css" href="../css/bopattern.css" />
       <script type="text/javascript" src="../ext-lib/msngr/msngr.min.js"></script>
-      <!-- Include all files; handy for debugging / testing
-          <script type="text/javascript" src="../src/main.js"></script>
-          <script type="text/javascript" src="../src/utilities/loader.js"></script>
-          <script type="text/javascript" src="../src/loops/render-loop.js"></script>
-          <script type="text/javascript" src="../src/loops/update-loop.js"></script>
-          <script type="text/javascript" src="../src/sprites/bodebug.js"></script>
-          <script type="text/javascript" src="../src/sprites/boempty.js"></script>
-          <script type="text/javascript" src="../src/sprites/botitle.js"></script>
-          <script type="text/javascript" src="../src/sprites/botile.js"></script>
-      -->
-      <script type="text/javascript" src="../dist/bopattern.min.js"></script>
+      <!-- Include all files; handy for debugging / testing -->
+      <script type="text/javascript" src="../src/main.js"></script>
+      <script type="text/javascript" src="../src/utilities/loader.js"></script>
+      <script type="text/javascript" src="../src/loops/render-loop.js"></script>
+      <script type="text/javascript" src="../src/loops/update-loop.js"></script>
+      <script type="text/javascript" src="../src/sprites/bodebug.js"></script>
+      <script type="text/javascript" src="../src/sprites/boempty.js"></script>
+      <script type="text/javascript" src="../src/sprites/botitle.js"></script>
+      <script type="text/javascript" src="../src/sprites/botile.js"></script>
+      <script type="text/javascript" src="../src/html-sprites/tooltip.js"></script>
+
+      <!--<script type="text/javascript" src="../dist/bopattern.min.js"></script>-->
       <script type="text/javascript">
           var generateRandomData = function(rows, columns) {
               var datas = [];
@@ -38,8 +40,7 @@
                           datas[i] = [];
                       }
                       datas[i][j] = {
-                          value: (Math.random() * (100 - 0) + 0),
-                          label: msngr.id()
+                          value: (Math.random() * (100 - 0) + 0)
                       };
                   }
               }
