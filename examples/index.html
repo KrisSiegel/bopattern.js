@@ -3,21 +3,10 @@
     <head>
       <meta charset="utf-8">
       <title>BoPattern.js</title>
-      <style>
-        h1 {
-            font-size: 16px;
-            font-family: "San Francisco", "Helvetica Neue", "Ariel", "sans-serif";
-        }
-
-        div#container {
-            height: 90vh;
-        }
-
-        canvas {
-            border: 1px solid #343434;
-        }
-      </style>
+      <link rel="stylesheet" type="text/css" href="../css/reset.css" />
+      <link rel="stylesheet" type="text/css" href="../css/base.css" />
       <link rel="stylesheet" type="text/css" href="../css/bopattern.css" />
+      
       <script type="text/javascript" src="../ext-lib/msngr/msngr.min.js"></script>
       <!-- Include all files; handy for debugging / testing -->
       <script type="text/javascript" src="../src/main.js"></script>
@@ -65,9 +54,21 @@
     </head>
 
     <body>
-        <h1>BoPattern.js <button id="randomBtn">Load Random Data</button></h1>
-        <div id="container">
-
-        </div>
+        <header>
+            <div class="content">
+                <h1>BoPattern<span>.js</span></h1>
+                <button id="randomBtn">Load Random Data</button>
+            </div>
+        </header>
+        <section>
+            <div class="content">
+                <div id="container"></div>
+            </div>
+        </section>
+        <footer>
+            <div class="content">
+                <p>&copy; 2015 Immuta, Inc.</p>
+            </div>
+        </footer>
     </body>
 </html>
