@@ -3,12 +3,11 @@
     <head>
       <meta charset="utf-8">
       <title>BoPattern.js</title>
-      <link rel="stylesheet" type="text/css" href="../css/reset.css" />
-      <link rel="stylesheet" type="text/css" href="../css/base.css" />
       <link rel="stylesheet" type="text/css" href="../css/bopattern.css" />
-      
+      <link rel="stylesheet" type="text/css" href="example.css" />
+
       <script type="text/javascript" src="../ext-lib/msngr/msngr.min.js"></script>
-      <!-- Include all files; handy for debugging / testing -->
+      
       <script type="text/javascript" src="../src/main.js"></script>
       <script type="text/javascript" src="../src/utilities/loader.js"></script>
       <script type="text/javascript" src="../src/loops/render-loop.js"></script>
@@ -19,38 +18,7 @@
       <script type="text/javascript" src="../src/sprites/botile.js"></script>
       <script type="text/javascript" src="../src/html-sprites/tooltip.js"></script>
 
-      <!--<script type="text/javascript" src="../dist/bopattern.min.js"></script>-->
-      <script type="text/javascript">
-          var generateRandomData = function(rows, columns) {
-              var datas = [];
-              for (var i = 0; i < rows; ++i) {
-                  for (var j = 0; j < columns; ++j) {
-                      if (datas[i] === undefined) {
-                          datas[i] = [];
-                      }
-                      datas[i][j] = {
-                          value: (Math.random() * (100 - 0) + 0)
-                      };
-                  }
-              }
-
-              return datas;
-          };
-
-          window.addEventListener("load", function(e) {
-
-              window.bopat = BoPattern("#container");
-
-              document.querySelector("button#randomBtn").addEventListener("click", function(e) {
-                  window.bopat.load(generateRandomData(12, 12), 15000);
-              }, false);
-
-              if (location.search.indexOf("autoload") !== -1) {
-                  window.bopat.load(generateRandomData(12, 12));
-              }
-
-          }, false);
-      </script>
+      <script type="text/javascript" src="example.js"></script>
     </head>
 
     <body>

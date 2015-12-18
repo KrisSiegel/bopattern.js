@@ -1,1 +1,1 @@
-div.polTooltip{position:absolute;width:auto;height:auto;top:0;left:0;display:none;z-index:9999999;border:1px solid #000}
+.polTooltip{display:none;position:absolute;top:0;left:0;background:rgba(0,0,0,.75);-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;padding:10px 20px;margin-bottom:10px;color:#fff;z-index:999999}

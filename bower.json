@@ -15,7 +15,8 @@
     "src/",
     "node_modules/",
     "ext-lib/",
-    "test/"
+    "test/",
+    "static.js"
   ],
   "dependencies": {
     "msngr": "3.2.2"

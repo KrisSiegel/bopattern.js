@@ -42,7 +42,7 @@ BoPattern.extend(function(internal) {
                 tooltip.style.display = "none";
                 tooltip.style.left = 0;
                 tooltip.style.top = 0;
-            }, 5000);
+            }, 3500);
         }
     });
 
