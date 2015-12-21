@@ -18,7 +18,7 @@ There is an included static file server when you pull down the repo that can be 
 
 ```http://localhost:8080/examples/example-all-sources.html``` -> This page manually includes each JavaScript and CSS file required to run BoPattern.js. Use this if you're a developer and you want to modify BoPattern.js without rebuilding it constantly.
 
-```http://localhost:8080/examples/example-concat-sources.html``` -> This page includes only the concatenated sources. This is handle should you want to debug something but not develop against it.
+```http://localhost:8080/examples/example-concat-sources.html``` -> This page includes only the concatenated sources. This is handy should you want to debug something but not develop against it.
 
 ```http://localhost:8080/examples/example-min-sources.html``` -> This page includes only minified sources. This is good for quick testing and verifying of functionality.
 
