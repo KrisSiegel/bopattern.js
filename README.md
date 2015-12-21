@@ -8,8 +8,19 @@ You can grab BoPattern.js in one of two ways.
 
 - Manually download either file in the ```./dist/``` directory. ```bopattern.js``` is the full code necessary where as ```bopattern.min.js``` is the same but minified.
 
+- Include the CSS from the dist folder should you wish to use html sprites (currently just tooltips).
+
 ## Quick start
-Simply set this folder to be served through a static web server then navigate to ```examples/```. This will load up the example page showing BoPattern.js working with a button that generates a random data set. Simple!
+Simply set this folder to be served through a static web server then navigate to any of the HTML files contained within ```examples/```. This will load up the example page showing BoPattern.js working with a button that generates a random data set. Simple!
+
+## Running the examples
+There is an included static file server when you pull down the repo that can be started by running ```npm start``` (**note** you must first run ```npm install```). Each of the example files are available at:
+
+```http://localhost:8080/examples/example-all-sources.html``` -> This page manually includes each JavaScript and CSS file required to run BoPattern.js. Use this if you're a developer and you want to modify BoPattern.js without rebuilding it constantly.
+
+```http://localhost:8080/examples/example-concat-sources.html``` -> This page includes only the concatenated sources. This is handy should you want to debug something but not develop against it.
+
+```http://localhost:8080/examples/example-min-sources.html``` -> This page includes only minified sources. This is good for quick testing and verifying of functionality.
 
 ## Usage
 BoPattern.js will put a BoPattern function at the top level (attached to window). This method allows you to create as many instances of BoPattern as necessary.
@@ -49,6 +60,23 @@ Loading data accepts a simple 2 dimensional array of input which are then render
         { value: 6, label: "something" }
     ]
 ]
+```
+
+Also note that there is an optional, second parameter for specifying options. At the moment this is limited to toggling tooltips on and off and can be done via:
+
+```javascript
+var bopat = BoPattern("div#selector"); // Accepts an HTML element or selector
+bopat.load([
+    [0, 1, 15, 46, 34, 23],
+    [17, 4, 16, 10, 8, 18],
+    [6, 6, 53, 64, 34, 19],
+    [54, 13, 55, 23, 34, 38],
+    [32, 88, 12, 52, 65, 45],
+], {
+    tooltip: {
+        display: false
+    }
+});
 ```
 
 ## Debugging

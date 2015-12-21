@@ -60,17 +60,35 @@ BoPattern.extend(function(internal) {
                 }
             },
             update: function() {
-                mouseOver = false;
+                var hitInThisIteration = false;
                 if (internal.user.mousePosition.x >= properties.x) {
                     if (internal.user.mousePosition.x <= (properties.x + properties.width)) {
                         // It's in our horizontal!
                         if (internal.user.mousePosition.y >= properties.y) {
                             if (internal.user.mousePosition.y <= (properties.y + properties.height)) {
                                 // IT'S IN ME!
+                                if (mouseOver === false) {
+                                    // State just changed; trigger intensifying!
+                                    internal.trigger("hover", {
+                                        x: getProperty("x"),
+                                        y: getProperty("y"),
+                                        absX: internal.absoluteLeft + getProperty("x"),
+                                        absY: internal.absoluteTop + getProperty("y"),
+                                        width: getProperty("width"),
+                                        height: getProperty("height"),
+                                        label: getProperty("label")
+                                    });
+                                }
                                 mouseOver = true;
+                                hitInThisIteration = true;
                             }
                         }
                     }
+                }
+
+                // Do this so I'm not setting mouseOver = false 4 freaking times
+                if (hitInThisIteration !== true) {
+                    mouseOver = false;
                 }
 
                 if (cachedScreenWidth !== internal.screenWidth || cachedScreenHeight !== internal.screenHeight) {

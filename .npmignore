@@ -6,3 +6,4 @@ src/
 node_modules/
 ext-lib/
 test/
+static.js
