@@ -23,7 +23,7 @@ var BoPattern = (function() {
             eventHandlers: {},
             config: msngr.merge({
                 screen: {
-                    radio: undefined
+                    ratio: undefined
                 },
                 tooltip: {
                     display: true
