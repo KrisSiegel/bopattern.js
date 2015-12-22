@@ -22,6 +22,9 @@ var BoPattern = (function() {
             data: {},
             eventHandlers: {},
             config: msngr.merge({
+                screen: {
+                    ratio: undefined
+                },
                 tooltip: {
                     display: true
                 }
@@ -302,6 +305,9 @@ BoPattern.extend(function(internal) {
         // Set canvas size to the container's size
         var width = internal.parent.getBoundingClientRect().width;
         var height = internal.parent.getBoundingClientRect().height;
+        if (internal.config.screen.ratio !== undefined) {
+            height = (width / internal.config.screen.ratio);
+        }
         if (internal.screenWidth !== width || internal.screenHeight !== height) {
             internal.canvas.width = (width * ratio);
             internal.canvas.style.width = (width + "px");
@@ -766,11 +772,9 @@ BoPattern.extend(function(internal) {
             label.appendChild(document.createTextNode(e.label));
             tooltip.style.left = (((e.width / 2) + e.absX) - (tooltip.getBoundingClientRect().width / 2)) + "px";
             tooltip.style.top = (e.absY - e.height) + "px";
-            tooltip.style.display = "block";
+            tooltip.className = "polTooltip in";
             timeout = setTimeout(function() {
-                tooltip.style.display = "none";
-                tooltip.style.left = 0;
-                tooltip.style.top = 0;
+                tooltip.className = "polTooltip out";
             }, 3500);
         }
     });

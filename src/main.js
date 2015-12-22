@@ -22,6 +22,9 @@ var BoPattern = (function() {
             data: {},
             eventHandlers: {},
             config: msngr.merge({
+                screen: {
+                    ratio: undefined
+                },
                 tooltip: {
                     display: true
                 }
