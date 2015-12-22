@@ -766,11 +766,9 @@ BoPattern.extend(function(internal) {
             label.appendChild(document.createTextNode(e.label));
             tooltip.style.left = (((e.width / 2) + e.absX) - (tooltip.getBoundingClientRect().width / 2)) + "px";
             tooltip.style.top = (e.absY - e.height) + "px";
-            tooltip.style.display = "block";
+            tooltip.className = "polTooltip in";
             timeout = setTimeout(function() {
-                tooltip.style.display = "none";
-                tooltip.style.left = 0;
-                tooltip.style.top = 0;
+                tooltip.className = "polTooltip out";
             }, 3500);
         }
     });
