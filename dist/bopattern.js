@@ -22,6 +22,9 @@ var BoPattern = (function() {
             data: {},
             eventHandlers: {},
             config: msngr.merge({
+                screen: {
+                    radio: undefined
+                },
                 tooltip: {
                     display: true
                 }
@@ -302,6 +305,9 @@ BoPattern.extend(function(internal) {
         // Set canvas size to the container's size
         var width = internal.parent.getBoundingClientRect().width;
         var height = internal.parent.getBoundingClientRect().height;
+        if (internal.config.screen.ratio !== undefined) {
+            height = (width / internal.config.screen.ratio);
+        }
         if (internal.screenWidth !== width || internal.screenHeight !== height) {
             internal.canvas.width = (width * ratio);
             internal.canvas.style.width = (width + "px");
