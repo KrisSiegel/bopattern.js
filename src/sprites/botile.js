@@ -147,10 +147,14 @@ BoPattern.extend(function(internal) {
                 properties.y = (dimensions.y);
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
-                if (internal.data.maxValue === 0) {
-                    properties.tileAlpha = 0.0;
+                if (internal.data.maxValue === 0 || Math.trunc(properties.value) === 0) {
+                    properties.tileAlpha = internal.BoTile.properties.emptyTileAlpha;
+                    properties.tileColor = internal.BoTile.properties.emptyTileColor;
                 } else {
                     properties.tileAlpha = (properties.value / internal.data.maxValue);
+                    if (internal.BoTile.properties.tileAlphaMinimum > properties.tileAlpha) {
+                        properties.tileAlpha = internal.BoTile.properties.tileAlphaMinimum;
+                    }
                 }
 
                 transitionProperties = msngr.copy(properties);
@@ -183,10 +187,13 @@ BoPattern.extend(function(internal) {
     internal.BoTile.properties = {
         tileColor: "#4DD2FF",
         tileAlpha: 1,
+        tileAlphaMinimum: 0.15,
         borderColor: "#FFFFFF",
         borderThickness: 10,
         borderAlpha: 1,
-        borderHighlight: "#A3B3A3"
+        borderHighlight: "#A3B3A3",
+        emptyTileColor: "#888890",
+        emptyTileAlpha: 0.356
     };
 
     return { };

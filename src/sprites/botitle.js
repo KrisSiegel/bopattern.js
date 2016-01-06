@@ -27,13 +27,13 @@ BoPattern.extend(function(internal) {
                 ctx.font = internal.BoTitle.properties.font;
                 ctx.fillStyle = internal.BoTitle.properties.color;
                 ctx.globalAlpha = 1;
-                ctx.textAlign = "left"; // This isn't exposed as it's more related to rendering than anything stylish
+                ctx.textAlign = "left";
                 ctx.fillText(internal.label, x, y);
                 ctx.closePath();
             },
             update: function(ctx) {
                 var measure = ctx.measureText(internal.label);
-                x = ((internal.screenWidth / 2) - (measure.width));
+                x = ((internal.screenWidth / 2) - (measure.width / 2));
                 y = (internal.boundedY1 / 2);
             },
             load: function() {

@@ -1,16 +1,17 @@
 BoPattern.extend(function(internal) {
     "use strict";
 
-    internal.BoEmpty = function() {
+    internal.BoYAxisLabel = function(text, position) {
         var zlayer = "overlay";
 
-        var txt = "I have no data to display :(";
+        var txt = text;
+        var pos = position;
         var txtMeasurement;
         var x;
         var y;
 
         var me = {
-            type: "boempty",
+            type: "boyaxislabel",
             render: function(ctx) {
                 if (x && y) {
                     ctx.font = internal.BoEmpty.properties.font;
@@ -20,9 +21,14 @@ BoPattern.extend(function(internal) {
                 }
             },
             update: function(ctx) {
-                txtMeasurement = ctx.measureText(txt);
-                x = ((internal.screenWidth / 2) - (txtMeasurement.width / 2));
-                y = ((internal.screenHeight / 2) - 14);
+                if (!msngr.isEmptyString(txt)) {
+                    txtMeasurement = ctx.measureText(txt);
+                    var txtWidth = txtMeasurement.width;
+                    var perLabelHeight = (internal.boundedHeight / internal.data.yaxisLabelCount);
+                    var ylabelWidth = (internal.screenWidth - internal.boundedWidth) / 2;
+                    x = (ylabelWidth / 2) - (txtWidth / 2);
+                    y = internal.boundedY1 + (perLabelHeight * pos) + (perLabelHeight / 2);
+                }
             },
             load: function() {
 
@@ -42,8 +48,8 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoEmpty.properties = {
-        font: "24px Gotham,Helvetica Neue,Helvetica,Arial,sans-serif",
-        color: "#858585"
+        font: "12pt sans-serif",
+        color: "#000000"
     };
 
     return { };

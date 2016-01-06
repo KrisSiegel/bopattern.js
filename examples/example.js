@@ -7,7 +7,7 @@
                     datas[i] = [];
                 }
                 datas[i][j] = {
-                    value: (Math.random() * (100 - 0) + 0)
+                    value: Math.floor(Math.random() * (100 - 0) + 0)
                 };
             }
         }
@@ -15,16 +15,25 @@
         return datas;
     };
 
+    var loadData = function() {
+        window.bopat.load(generateRandomData(6, 6), {
+            labels: {
+                title: "Random Data",
+                xaxis: ["frogs", "chicken", "whatever", "4", "nine", "6"],
+                yaxis: ["1", "2", "3", "4", "5", "6"]
+            }
+        });
+    };
+
     window.addEventListener("load", function(e) {
 
         window.bopat = BoPattern("#container");
+        window.bopat.debug = true;
 
-        document.querySelector("button#randomBtn").addEventListener("click", function(e) {
-            window.bopat.load(generateRandomData(12, 12), 15000);
-        }, false);
+        document.querySelector("button#randomBtn").addEventListener("click", loadData, false);
 
         if (location.search.indexOf("autoload") !== -1) {
-            window.bopat.load(generateRandomData(12, 12));
+            loadData();
         }
 
     }, false);

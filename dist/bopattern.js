@@ -441,14 +441,15 @@ BoPattern.extend(function(internal) {
             render: function(ctx) {
                 if (x && y) {
                     ctx.font = internal.BoEmpty.properties.font;
+                    ctx.textAlign = "left";
                     ctx.fillStyle = internal.BoEmpty.properties.color;
                     ctx.fillText(txt, x, y);
                 }
             },
             update: function(ctx) {
                 txtMeasurement = ctx.measureText(txt);
-                x = ((internal.screenWidth / 2) - txtMeasurement.width);
-                y = ((internal.screenHeight / 2) - txtMeasurement.height);
+                x = ((internal.screenWidth / 2) - (txtMeasurement.width / 2));
+                y = ((internal.screenHeight / 2) - 14);
             },
             load: function() {
 
@@ -468,8 +469,8 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoEmpty.properties = {
-        font: "16pt Calibri",
-        color: "#000000"
+        font: "24px Gotham,Helvetica Neue,Helvetica,Arial,sans-serif",
+        color: "#858585"
     };
 
     return { };
@@ -624,10 +625,14 @@ BoPattern.extend(function(internal) {
                 properties.y = (dimensions.y);
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
-                if (internal.data.maxValue === 0) {
-                    properties.tileAlpha = 0.0;
+                if (internal.data.maxValue === 0 || Math.trunc(properties.value) === 0) {
+                    properties.tileAlpha = internal.BoTile.properties.emptyTileAlpha;
+                    properties.tileColor = internal.BoTile.properties.emptyTileColor;
                 } else {
                     properties.tileAlpha = (properties.value / internal.data.maxValue);
+                    if (internal.BoTile.properties.tileAlphaMinimum > properties.tileAlpha) {
+                        properties.tileAlpha = internal.BoTile.properties.tileAlphaMinimum;
+                    }
                 }
 
                 transitionProperties = msngr.copy(properties);
@@ -660,10 +665,13 @@ BoPattern.extend(function(internal) {
     internal.BoTile.properties = {
         tileColor: "#4DD2FF",
         tileAlpha: 1,
+        tileAlphaMinimum: 0.15,
         borderColor: "#FFFFFF",
         borderThickness: 10,
         borderAlpha: 1,
-        borderHighlight: "#A3B3A3"
+        borderHighlight: "#A3B3A3",
+        emptyTileColor: "#888890",
+        emptyTileAlpha: 0.356
     };
 
     return { };
@@ -698,13 +706,13 @@ BoPattern.extend(function(internal) {
                 ctx.font = internal.BoTitle.properties.font;
                 ctx.fillStyle = internal.BoTitle.properties.color;
                 ctx.globalAlpha = 1;
-                ctx.textAlign = "left"; // This isn't exposed as it's more related to rendering than anything stylish
+                ctx.textAlign = "left";
                 ctx.fillText(internal.label, x, y);
                 ctx.closePath();
             },
             update: function(ctx) {
                 var measure = ctx.measureText(internal.label);
-                x = ((internal.screenWidth / 2) - (measure.width));
+                x = ((internal.screenWidth / 2) - (measure.width / 2));
                 y = (internal.boundedY1 / 2);
             },
             load: function() {
@@ -731,6 +739,121 @@ BoPattern.extend(function(internal) {
     };
 
     return external;
+});
+
+BoPattern.extend(function(internal) {
+    "use strict";
+
+    internal.BoXAxisLabel = function(text, position) {
+        var zlayer = "overlay";
+
+        var txt = text;
+        var pos = position;
+        var txtMeasurement;
+        var x;
+        var y;
+
+        var me = {
+            type: "boxaxislabel",
+            render: function(ctx) {
+                if (x && y) {
+                    ctx.font = internal.BoEmpty.properties.font;
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = internal.BoEmpty.properties.color;
+                    ctx.fillText(txt, x, y);
+                }
+            },
+            update: function(ctx) {
+                if (!msngr.isEmptyString(txt)) {
+                    txtMeasurement = ctx.measureText(txt);
+                    var txtWidth = txtMeasurement.width;
+                    var perLabelWidth = (internal.boundedWidth / internal.data.xaxisLabelCount);
+
+                    x = internal.boundedX1 + ((perLabelWidth * pos) + (perLabelWidth) / 2) - (txtWidth / 2);
+                    x = x - (internal.BoTile.properties.borderThickness / 2);
+                    y = internal.boundedY1 + internal.boundedHeight + 20;
+                }
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
+            }
+        };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return z;
+            }
+        });
+
+        return me;
+    };
+
+    internal.BoEmpty.properties = {
+        font: "12pt sans-serif",
+        color: "#000000"
+    };
+
+    return { };
+});
+
+BoPattern.extend(function(internal) {
+    "use strict";
+
+    internal.BoYAxisLabel = function(text, position) {
+        var zlayer = "overlay";
+
+        var txt = text;
+        var pos = position;
+        var txtMeasurement;
+        var x;
+        var y;
+
+        var me = {
+            type: "boyaxislabel",
+            render: function(ctx) {
+                if (x && y) {
+                    ctx.font = internal.BoEmpty.properties.font;
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = internal.BoEmpty.properties.color;
+                    ctx.fillText(txt, x, y);
+                }
+            },
+            update: function(ctx) {
+                if (!msngr.isEmptyString(txt)) {
+                    txtMeasurement = ctx.measureText(txt);
+                    var txtWidth = txtMeasurement.width;
+                    var perLabelHeight = (internal.boundedHeight / internal.data.yaxisLabelCount);
+                    var ylabelWidth = (internal.screenWidth - internal.boundedWidth) / 2;
+                    x = (ylabelWidth / 2) - (txtWidth / 2);
+                    y = internal.boundedY1 + (perLabelHeight * pos) + (perLabelHeight / 2);
+                }
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
+            }
+        };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return z;
+            }
+        });
+
+        return me;
+    };
+
+    internal.BoEmpty.properties = {
+        font: "12pt sans-serif",
+        color: "#000000"
+    };
+
+    return { };
 });
 
 BoPattern.extend(function(internal) {
@@ -786,9 +909,18 @@ BoPattern.extend(function(internal) {
     "use strict";
 
     return {
-        load: function(data) {
+        load: function(data, meta) {
             if (!msngr.exist(data)) {
                 return undefined;
+            }
+
+            var copy = data.slice(0); // This copies the array; msngr.copy() doesn't copy arrays :(
+            var opts = msngr.copy(meta) || { }; // This copies the meta data options if any were provided
+            if (opts.labels === undefined) {
+                opts.labels = {
+                    xaxis: [],
+                    yaxis: []
+                };
             }
 
             // Alright we're repopulating the grid; let's tell the existing
@@ -804,19 +936,20 @@ BoPattern.extend(function(internal) {
                 } else {
                     var minValue = undefined;
                     var maxValue = undefined;
-                    var maxFirstDimension = data.length;
+                    var maxFirstDimension = copy.length;
                     var maxSecondDimension = undefined;
+                    var xaxisLabelCount = opts.labels.xaxis.length;
+                    var yaxisLabelCount = opts.labels.yaxis.length;
                     var objects = [];
 
-                    var dataLen = data.length;
+                    var dataLen = copy.length;
                     for (var i = 0; i < dataLen; ++i) {
-                        var sLen = data[i].length;
+                        var sLen = copy[i].length;
                         for (var j = 0; j < sLen; ++j) {
-                            var datum = data[i][j];
+                            var datum = copy[i][j];
                             if (msngr.isObject(datum)) {
-                                datum.value = datum.value || datum.data;
+                                datum.value = (datum.value || datum.data) || 0;
                                 datum.label = datum.label || datum.value.toFixed(2);
-                                delete datum.data;
                             } else {
                                 datum = {
                                     value: datum,
@@ -845,19 +978,39 @@ BoPattern.extend(function(internal) {
 
                     // Clear the original array of objects if any still exist and create new ones
                     internal.clearObjects("background");
+                    internal.clearObjects("overlay", "boempty");
+                    internal.clearObjects("overlay", "boxaxislabel");
+                    internal.clearObjects("overlay", "boyaxislabel");
+                    if (maxSecondDimension === undefined || maxSecondDimension === 0) {
+                        internal.addObject("overlay", internal.BoEmpty());
+                    }
 
-                    internal.data.raw = data;
+                    internal.data.raw = copy;
 
-                    internal.stopUpdating();
                     internal.stopRendering();
 
                     internal.data.minValue = minValue;
                     internal.data.maxValue = maxValue;
                     internal.data.maxFirstDimension = maxFirstDimension;
                     internal.data.maxSecondDimension = maxSecondDimension;
+                    internal.data.xaxisLabelCount = xaxisLabelCount;
+                    internal.data.yaxisLabelCount = yaxisLabelCount;
                     internal.objects.background = objects;
 
-                    internal.startUpdating();
+                    // x-axis labels
+                    for (var i = 0; i < opts.labels.xaxis.length; ++i) {
+                        (function(label, index) {
+                            internal.addObject("overlay", internal.BoXAxisLabel(label, index));
+                        }(opts.labels.xaxis[i], i));
+                    }
+
+                    // y-axis labels
+                    for (var i = 0; i < opts.labels.yaxis.length; ++i) {
+                        (function(label, index) {
+                            internal.addObject("overlay", internal.BoYAxisLabel(label, index));
+                        }(opts.labels.yaxis[i], i));
+                    }
+
                     internal.startRendering();
 
                     var objLen = internal.objects.background.length;
