@@ -16,6 +16,9 @@ BoPattern.extend(function(internal) {
                 };
             }
 
+            opts.labels.xaxis = opts.labels.xaxis || [];
+            opts.labels.yaxis = opts.labels.yaxis || [];
+
             // Alright we're repopulating the grid; let's tell the existing
             // tiles to go away
             var objLen = internal.objects.background.length;

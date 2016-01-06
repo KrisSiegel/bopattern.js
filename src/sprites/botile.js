@@ -14,6 +14,11 @@ BoPattern.extend(function(internal) {
         var cachedScreenWidth;
         var cachedScreenHeight;
 
+        // Basically a polyfill for ES6's Math.trunc()
+        var truncate = function (val) {
+        	return val < 0 ? Math.ceil(val) : Math.floor(val);
+        };
+
         var calcTileDimensions = function() {
             var tileWidth = (internal.boundedWidth / internal.data.maxFirstDimension);
             var tileHeight = (internal.boundedHeight / (internal.data.maxSecondDimension + 1));
@@ -147,7 +152,7 @@ BoPattern.extend(function(internal) {
                 properties.y = (dimensions.y);
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
-                if (internal.data.maxValue === 0 || Math.trunc(properties.value) === 0) {
+                if (internal.data.maxValue === 0 || (properties.value && truncate(properties.value) === 0)) {
                     properties.tileAlpha = internal.BoTile.properties.emptyTileAlpha;
                     properties.tileColor = internal.BoTile.properties.emptyTileColor;
                 } else {
