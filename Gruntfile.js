@@ -19,7 +19,6 @@ module.exports = (function(grunt) {
         "src/main.js",
         "src/loops/*.js",
         "src/sprites/*.js",
-        "src/html-sprites/*.js",
         "src/utilities/*.js",
         "!**/*.aspec.js",
         "!**/*.cspec.js",

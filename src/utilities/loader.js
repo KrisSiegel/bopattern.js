@@ -19,6 +19,15 @@ BoPattern.extend(function(internal) {
             opts.labels.xaxis = opts.labels.xaxis || [];
             opts.labels.yaxis = opts.labels.yaxis || [];
 
+            // Check the array dimensions
+            if (msngr.isArray(copy) && (!msngr.isArray(copy[0]) && copy[0] !== undefined)) {
+                // Array is one dimensional. Sigh. Let's just 'fix the glitch'
+                copy = [copy];
+                if (internal.config.warnings === true) {
+                    console.warn("Single dimension array passed into <instance>.load(). It was autocorrected.");
+                }
+            }
+
             // Alright we're repopulating the grid; let's tell the existing
             // tiles to go away
             var objLen = internal.objects.background.length;

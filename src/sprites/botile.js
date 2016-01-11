@@ -13,6 +13,7 @@ BoPattern.extend(function(internal) {
         var mouseOver;
         var cachedScreenWidth;
         var cachedScreenHeight;
+        var tooltip = internal.BoTooltip();
 
         // Basically a polyfill for ES6's Math.trunc()
         var truncate = function (val) {
@@ -74,7 +75,7 @@ BoPattern.extend(function(internal) {
                                 // IT'S IN ME!
                                 if (mouseOver === false) {
                                     // State just changed; trigger intensifying!
-                                    internal.trigger("hover", {
+                                    var eventData = {
                                         x: getProperty("x"),
                                         y: getProperty("y"),
                                         absX: internal.absoluteLeft + getProperty("x"),
@@ -82,7 +83,9 @@ BoPattern.extend(function(internal) {
                                         width: getProperty("width"),
                                         height: getProperty("height"),
                                         label: getProperty("label")
-                                    });
+                                    };
+                                    internal.trigger("hover", eventData);
+                                    tooltip.load(eventData);
                                 }
                                 mouseOver = true;
                                 hitInThisIteration = true;
@@ -94,6 +97,7 @@ BoPattern.extend(function(internal) {
                 // Do this so I'm not setting mouseOver = false 4 freaking times
                 if (hitInThisIteration !== true) {
                     mouseOver = false;
+                    tooltip.unload();
                 }
 
                 if (cachedScreenWidth !== internal.screenWidth || cachedScreenHeight !== internal.screenHeight) {

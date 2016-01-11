@@ -22,6 +22,7 @@ var BoPattern = (function() {
             data: {},
             eventHandlers: {},
             config: msngr.merge({
+                warnings: true,
                 screen: {
                     ratio: undefined
                 },
@@ -159,7 +160,7 @@ var BoPattern = (function() {
             set: function(input) {
                 internal.debug = input;
                 if (input === true) {
-                    internal.clearObjects("overlay");
+                    internal.clearObjects("overlay", "bodebug"); // Make sure there is only one instance of BoDebug
                     internal.addObject("overlay", internal.BoDebug());
                     Object.defineProperty(boObj, "internal", {
                         configurable: true,
@@ -491,6 +492,7 @@ BoPattern.extend(function(internal) {
         var mouseOver;
         var cachedScreenWidth;
         var cachedScreenHeight;
+        var tooltip = internal.BoTooltip();
 
         // Basically a polyfill for ES6's Math.trunc()
         var truncate = function (val) {
@@ -552,7 +554,7 @@ BoPattern.extend(function(internal) {
                                 // IT'S IN ME!
                                 if (mouseOver === false) {
                                     // State just changed; trigger intensifying!
-                                    internal.trigger("hover", {
+                                    var eventData = {
                                         x: getProperty("x"),
                                         y: getProperty("y"),
                                         absX: internal.absoluteLeft + getProperty("x"),
@@ -560,7 +562,9 @@ BoPattern.extend(function(internal) {
                                         width: getProperty("width"),
                                         height: getProperty("height"),
                                         label: getProperty("label")
-                                    });
+                                    };
+                                    internal.trigger("hover", eventData);
+                                    tooltip.load(eventData);
                                 }
                                 mouseOver = true;
                                 hitInThisIteration = true;
@@ -572,6 +576,7 @@ BoPattern.extend(function(internal) {
                 // Do this so I'm not setting mouseOver = false 4 freaking times
                 if (hitInThisIteration !== true) {
                     mouseOver = false;
+                    tooltip.unload();
                 }
 
                 if (cachedScreenWidth !== internal.screenWidth || cachedScreenHeight !== internal.screenHeight) {
@@ -685,7 +690,7 @@ BoPattern.extend(function(internal) {
 BoPattern.extend(function(internal) {
     "use strict";
 
-    // Static elements for BoLabel
+    // Static elements for BoTitle
     var external = { };
     Object.defineProperty(external, "title", {
         get: function() {
@@ -698,7 +703,7 @@ BoPattern.extend(function(internal) {
         }
     })
 
-    // Returns an instance of BoLabel
+    // Returns an instance of BoTitle
     internal.BoTitle = function() {
         var zlayer = "overlay";
         var x = 0;
@@ -864,50 +869,57 @@ BoPattern.extend(function(internal) {
 BoPattern.extend(function(internal) {
     "use strict";
 
-    var tooltip;
-    var label;
-    var applyConfig = function() {
-        if (internal.config.tooltip.display === true) {
-            if (tooltip === undefined) {
-                tooltip = document.createElement("div");
-                label = document.createElement("label");
-                tooltip.appendChild(label);
+    // Returns an instance of BoTooltip
+    internal.BoTooltip = function() {
+        var zlayer = "overlay";
+        var x = 0;
+        var y = 0;
+        var alpha = 0;
+        var tile;
+        var loaded = false;
+
+        var me = {
+            type: "botooltip",
+            render: function(ctx) {
+                ctx.beginPath();
+                ctx.font = internal.BoTitle.properties.font;
+                ctx.fillStyle = internal.BoTitle.properties.color;
+                ctx.globalAlpha = 1;
+                ctx.fillText(tile.label, tile.x, tile.y);
+                ctx.closePath();
+            },
+            update: function(ctx) {
+
+            },
+            load: function(tileProps) {
+                internal.addObject(zlayer, me);
+                loaded = true;
+                alpha = 0;
+                tile = tileProps;
+            },
+            unload: function() {
+                if (loaded === true) {
+                    loaded = false;
+                    internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
+                }
             }
-            tooltip.className = "polTooltip";
-            if (tooltip.parentNode !== document.body) {
-                document.body.appendChild(tooltip);
+        };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return zlayer;
             }
-        } else {
-            document.body.removeChild(tooltip);
-        }
+        });
+
+        return me;
     };
 
-    internal.on("configChanged", function() {
-        applyConfig();
-    });
-
-    var clear = function() {
-        while (label && label.firstChild) {
-            label.removeChild(label.firstChild);
-        }
+    internal.BoTooltip.properties = {
+        font: "16pt sans-serif",
+        color: "#000000"
     };
 
-    var timeout;
-    internal.on("hover", function(e) {
-        if (tooltip && internal.config.tooltip.display === true) {
-            clearTimeout(timeout);
-            clear();
-            label.appendChild(document.createTextNode(e.label));
-            tooltip.style.left = (((e.width / 2) + e.absX) - (tooltip.getBoundingClientRect().width / 2)) + "px";
-            tooltip.style.top = (e.absY - e.height) + "px";
-            tooltip.className = "polTooltip in";
-            timeout = setTimeout(function() {
-                tooltip.className = "polTooltip out";
-            }, 3500);
-        }
-    });
-
-    applyConfig(); // Initial application of it
+    return { };
 });
 
 BoPattern.extend(function(internal) {
@@ -930,6 +942,15 @@ BoPattern.extend(function(internal) {
 
             opts.labels.xaxis = opts.labels.xaxis || [];
             opts.labels.yaxis = opts.labels.yaxis || [];
+
+            // Check the array dimensions
+            if (msngr.isArray(copy) && (!msngr.isArray(copy[0]) && copy[0] !== undefined)) {
+                // Array is one dimensional. Sigh. Let's just 'fix the glitch'
+                copy = [copy];
+                if (internal.config.warnings === true) {
+                    console.warn("Single dimension array passed into <instance>.load(). It was autocorrected.");
+                }
+            }
 
             // Alright we're repopulating the grid; let's tell the existing
             // tiles to go away
