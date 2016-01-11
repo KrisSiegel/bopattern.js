@@ -17,4 +17,16 @@ describe("./utilities/loader.js", function() {
             done();
         }, 25);
     });
+
+    it("instance.load(data) - loads a single-dimension array and warns the user of such", function(done) {
+        var bopat = BoPattern("body", { warnings: false });
+        bopat.load([5, 17, 34, 12, 5]);
+
+        setTimeout(function() {
+            bopat.debug = true;
+            expect(bopat.internal.objects.background.length).to.equal(5);
+            bopat.removeSelf();
+            done();
+        }, 25);
+    });
 });

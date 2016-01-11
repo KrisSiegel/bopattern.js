@@ -1,7 +1,7 @@
 BoPattern.extend(function(internal) {
     "use strict";
 
-    // Static elements for BoLabel
+    // Static elements for BoTitle
     var external = { };
     Object.defineProperty(external, "title", {
         get: function() {
@@ -14,7 +14,7 @@ BoPattern.extend(function(internal) {
         }
     })
 
-    // Returns an instance of BoLabel
+    // Returns an instance of BoTitle
     internal.BoTitle = function() {
         var zlayer = "overlay";
         var x = 0;
