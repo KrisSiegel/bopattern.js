@@ -1,7 +1,9 @@
 # BoPattern.js
 An easy to use pattern of life control that simply takes a 2 dimensional array of values and outputs a responsive and interactive pattern of life graph.
 
-![BoPattern.js Screenshot](/resources/BoPatternScreenshot.png?raw=true "BoPattern.js Screenshot")
+<p align="center">
+<img src="/resources/BoPatternScreenshot.png?raw=true" alt="BoPattern.js Screenshot" title="BoPattern.js Screenshot" />
+</p>
 
 ## Installation
 You can grab BoPattern.js in one of two ways.
