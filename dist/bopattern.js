@@ -21,7 +21,9 @@ var BoPattern = (function() {
             },
             data: {},
             eventHandlers: {},
+            utils: {},
             config: msngr.merge({
+                warnings: true,
                 screen: {
                     ratio: undefined
                 },
@@ -159,7 +161,7 @@ var BoPattern = (function() {
             set: function(input) {
                 internal.debug = input;
                 if (input === true) {
-                    internal.clearObjects("overlay");
+                    internal.clearObjects("overlay", "bodebug"); // Make sure there is only one instance of BoDebug
                     internal.addObject("overlay", internal.BoDebug());
                     Object.defineProperty(boObj, "internal", {
                         configurable: true,
@@ -441,14 +443,15 @@ BoPattern.extend(function(internal) {
             render: function(ctx) {
                 if (x && y) {
                     ctx.font = internal.BoEmpty.properties.font;
+                    ctx.textAlign = "left";
                     ctx.fillStyle = internal.BoEmpty.properties.color;
                     ctx.fillText(txt, x, y);
                 }
             },
             update: function(ctx) {
                 txtMeasurement = ctx.measureText(txt);
-                x = ((internal.screenWidth / 2) - txtMeasurement.width);
-                y = ((internal.screenHeight / 2) - txtMeasurement.height);
+                x = ((internal.screenWidth / 2) - (txtMeasurement.width / 2));
+                y = ((internal.screenHeight / 2) - internal.BoEmpty.properties.heightMargin);
             },
             load: function() {
 
@@ -468,8 +471,9 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoEmpty.properties = {
-        font: "16pt Calibri",
-        color: "#000000"
+        font: "24px Gotham,Helvetica Neue,Helvetica,Arial,sans-serif",
+        color: "#858585",
+        heightMargin: 14
     };
 
     return { };
@@ -490,6 +494,12 @@ BoPattern.extend(function(internal) {
         var mouseOver;
         var cachedScreenWidth;
         var cachedScreenHeight;
+        var tooltip = internal.BoTooltip();
+
+        // Basically a polyfill for ES6's Math.trunc()
+        var truncate = function (val) {
+        	return val < 0 ? Math.ceil(val) : Math.floor(val);
+        };
 
         var calcTileDimensions = function() {
             var tileWidth = (internal.boundedWidth / internal.data.maxFirstDimension);
@@ -546,7 +556,7 @@ BoPattern.extend(function(internal) {
                                 // IT'S IN ME!
                                 if (mouseOver === false) {
                                     // State just changed; trigger intensifying!
-                                    internal.trigger("hover", {
+                                    var eventData = {
                                         x: getProperty("x"),
                                         y: getProperty("y"),
                                         absX: internal.absoluteLeft + getProperty("x"),
@@ -554,7 +564,9 @@ BoPattern.extend(function(internal) {
                                         width: getProperty("width"),
                                         height: getProperty("height"),
                                         label: getProperty("label")
-                                    });
+                                    };
+                                    internal.trigger("hover", eventData);
+                                    tooltip.load(eventData);
                                 }
                                 mouseOver = true;
                                 hitInThisIteration = true;
@@ -566,6 +578,7 @@ BoPattern.extend(function(internal) {
                 // Do this so I'm not setting mouseOver = false 4 freaking times
                 if (hitInThisIteration !== true) {
                     mouseOver = false;
+                    tooltip.unload();
                 }
 
                 if (cachedScreenWidth !== internal.screenWidth || cachedScreenHeight !== internal.screenHeight) {
@@ -624,10 +637,15 @@ BoPattern.extend(function(internal) {
                 properties.y = (dimensions.y);
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
-                if (internal.data.maxValue === 0) {
-                    properties.tileAlpha = 0.0;
+                properties.value = truncate(properties.value || 0);
+                if (internal.data.maxValue === 0 || properties.value === 0) {
+                    properties.tileAlpha = internal.BoTile.properties.emptyTileAlpha;
+                    properties.tileColor = internal.BoTile.properties.emptyTileColor;
                 } else {
                     properties.tileAlpha = (properties.value / internal.data.maxValue);
+                    if (internal.BoTile.properties.tileAlphaMinimum > properties.tileAlpha) {
+                        properties.tileAlpha = internal.BoTile.properties.tileAlphaMinimum;
+                    }
                 }
 
                 transitionProperties = msngr.copy(properties);
@@ -660,10 +678,13 @@ BoPattern.extend(function(internal) {
     internal.BoTile.properties = {
         tileColor: "#4DD2FF",
         tileAlpha: 1,
+        tileAlphaMinimum: 0.15,
         borderColor: "#FFFFFF",
         borderThickness: 10,
         borderAlpha: 1,
-        borderHighlight: "#A3B3A3"
+        borderHighlight: "#A3B3A3",
+        emptyTileColor: "#888890",
+        emptyTileAlpha: 0.356
     };
 
     return { };
@@ -672,7 +693,7 @@ BoPattern.extend(function(internal) {
 BoPattern.extend(function(internal) {
     "use strict";
 
-    // Static elements for BoLabel
+    // Static elements for BoTitle
     var external = { };
     Object.defineProperty(external, "title", {
         get: function() {
@@ -685,7 +706,7 @@ BoPattern.extend(function(internal) {
         }
     })
 
-    // Returns an instance of BoLabel
+    // Returns an instance of BoTitle
     internal.BoTitle = function() {
         var zlayer = "overlay";
         var x = 0;
@@ -698,13 +719,13 @@ BoPattern.extend(function(internal) {
                 ctx.font = internal.BoTitle.properties.font;
                 ctx.fillStyle = internal.BoTitle.properties.color;
                 ctx.globalAlpha = 1;
-                ctx.textAlign = "left"; // This isn't exposed as it's more related to rendering than anything stylish
+                ctx.textAlign = "left";
                 ctx.fillText(internal.label, x, y);
                 ctx.closePath();
             },
             update: function(ctx) {
                 var measure = ctx.measureText(internal.label);
-                x = ((internal.screenWidth / 2) - (measure.width));
+                x = ((internal.screenWidth / 2) - (measure.width / 2));
                 y = (internal.boundedY1 / 2);
             },
             load: function() {
@@ -736,59 +757,258 @@ BoPattern.extend(function(internal) {
 BoPattern.extend(function(internal) {
     "use strict";
 
-    var tooltip;
-    var label;
-    var applyConfig = function() {
-        if (internal.config.tooltip.display === true) {
-            if (tooltip === undefined) {
-                tooltip = document.createElement("div");
-                label = document.createElement("label");
-                tooltip.appendChild(label);
+    internal.BoXAxisLabel = function(text, position) {
+        var zlayer = "overlay";
+
+        var txt = text;
+        var pos = position;
+        var txtMeasurement;
+        var x;
+        var y;
+
+        var me = {
+            type: "boxaxislabel",
+            render: function(ctx) {
+                if (x && y) {
+                    ctx.font = internal.BoXAxisLabel.properties.font;
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = internal.BoXAxisLabel.properties.color;
+                    ctx.fillText(txt, x, y);
+                }
+            },
+            update: function(ctx) {
+                if (!msngr.isEmptyString(txt)) {
+                    txtMeasurement = ctx.measureText(txt);
+                    var txtWidth = txtMeasurement.width;
+                    var perLabelWidth = (internal.boundedWidth / internal.data.xaxisLabelCount);
+
+                    x = internal.boundedX1 + ((perLabelWidth * pos) + (perLabelWidth) / 2) - (txtWidth / 2);
+                    x = x - (internal.BoTile.properties.borderThickness / 2);
+                    y = internal.boundedY1 + internal.boundedHeight + internal.BoXAxisLabel.properties.heightMargin;
+                }
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
             }
-            tooltip.className = "polTooltip";
-            if (tooltip.parentNode !== document.body) {
-                document.body.appendChild(tooltip);
+        };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return z;
             }
-        } else {
-            document.body.removeChild(tooltip);
-        }
+        });
+
+        return me;
     };
 
-    internal.on("configChanged", function() {
-        applyConfig();
-    });
-
-    var clear = function() {
-        while (label && label.firstChild) {
-            label.removeChild(label.firstChild);
-        }
+    internal.BoXAxisLabel.properties = {
+        font: "12pt sans-serif",
+        color: "#000000",
+        heightMargin: 20
     };
 
-    var timeout;
-    internal.on("hover", function(e) {
-        if (tooltip && internal.config.tooltip.display === true) {
-            clearTimeout(timeout);
-            clear();
-            label.appendChild(document.createTextNode(e.label));
-            tooltip.style.left = (((e.width / 2) + e.absX) - (tooltip.getBoundingClientRect().width / 2)) + "px";
-            tooltip.style.top = (e.absY - e.height) + "px";
-            tooltip.className = "polTooltip in";
-            timeout = setTimeout(function() {
-                tooltip.className = "polTooltip out";
-            }, 3500);
-        }
-    });
+    return { };
+});
 
-    applyConfig(); // Initial application of it
+BoPattern.extend(function(internal) {
+    "use strict";
+
+    internal.BoYAxisLabel = function(text, position) {
+        var zlayer = "overlay";
+
+        var txt = text;
+        var pos = position;
+        var txtMeasurement;
+        var x;
+        var y;
+
+        var me = {
+            type: "boyaxislabel",
+            render: function(ctx) {
+                if (x && y) {
+                    ctx.font = internal.BoYAxisLabel.properties.font;
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = internal.BoYAxisLabel.properties.color;
+                    ctx.fillText(txt, x, y);
+                }
+            },
+            update: function(ctx) {
+                if (!msngr.isEmptyString(txt)) {
+                    txtMeasurement = ctx.measureText(txt);
+                    var txtWidth = txtMeasurement.width;
+                    var perLabelHeight = (internal.boundedHeight / internal.data.yaxisLabelCount);
+                    var ylabelWidth = (internal.screenWidth - internal.boundedWidth) / 2;
+                    x = (ylabelWidth / 2) - (txtWidth / 2);
+                    y = internal.boundedY1 + (perLabelHeight * pos) + (perLabelHeight / 2);
+                }
+            },
+            load: function() {
+
+            },
+            unload: function() {
+                internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
+            }
+        };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return z;
+            }
+        });
+
+        return me;
+    };
+
+    internal.BoYAxisLabel.properties = {
+        font: "12pt sans-serif",
+        color: "#000000"
+    };
+
+    return { };
+});
+
+BoPattern.extend(function(internal) {
+    "use strict";
+
+    // Returns an instance of BoTooltip
+    internal.BoTooltip = function() {
+        var zlayer = "foreground";
+        var alpha = 0;
+        var txtWidth;
+        var txtX;
+        var txtY;
+        var overX;
+        var overY;
+        var tile;
+        var loaded = false;
+
+        var me = {
+            type: "botooltip",
+            render: function(ctx) {
+                ctx.beginPath();
+                ctx.globalAlpha = alpha;
+                ctx.strokeStyle = internal.BoTooltip.properties.backgroundStrokeColor;
+                ctx.lineWidth = internal.BoTooltip.properties.backgroundStrokeThickness;
+                ctx.fillStyle = internal.BoTooltip.properties.backgroundColor;
+                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, 55, 5);
+                ctx.closePath();
+
+                ctx.beginPath();
+                ctx.font = internal.BoTitle.properties.font;
+                ctx.fillStyle = internal.BoTooltip.properties.color;
+                ctx.globalAlpha = alpha;
+                ctx.fillText(tile.label, txtX, txtY);
+                ctx.closePath();
+            },
+            update: function(ctx) {
+                var measure = ctx.measureText(tile.label);
+                txtWidth = measure.width;
+                txtX = ((tile.x + (tile.width / 2) - (txtWidth / 2)) - (internal.BoTile.properties.borderThickness / 2));
+                txtY = tile.y - internal.BoTile.properties.borderThickness;
+                overX = txtX;
+                overY = tile.y - 45;
+                if (alpha < 1) {
+                    alpha += .10;
+                }
+            },
+            load: function(tileProps) {
+                alpha = 1;
+                internal.addObject(zlayer, me);
+                loaded = true;
+                tile = tileProps;
+            },
+            unload: function() {
+                // Ensures we only unload ourselves
+                if (loaded === true) {
+                    loaded = false;
+                    alpha = 0;
+                    internal.objects[zlayer].splice(internal.objects[zlayer].indexOf(me), 1);
+                }
+            }
+        };
+
+        Object.defineProperty(me, "z", {
+            get: function() {
+                return zlayer;
+            }
+        });
+
+        return me;
+    };
+
+    internal.BoTooltip.properties = {
+        font: "11px sans-serif",
+        color: "#FFFFEE",
+        backgroundColor: "#232323",
+        backgroundStrokeThickness: 1,
+        backgroundStrokeColor: "#FFFFFF"
+    };
+
+    return { };
+});
+
+BoPattern.extend(function(internal) {
+    "use strict";
+
+    internal.utils.fillRoundRect = function(ctx, x, y, width, height, radius) {
+        var rad = {
+            tl: (radius || 0),
+            tr: (radius || 0),
+            br: (radius || 0),
+            bl: (radius || 0)
+        };
+
+        ctx.beginPath();
+        ctx.moveTo(x + rad.tl, y);
+        ctx.lineTo(x + width - rad.tr, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + rad.tr);
+        ctx.lineTo(x + width, y + height - rad.br);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - rad.br, y + height);
+        ctx.lineTo(x + rad.bl, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - rad.bl);
+        ctx.lineTo(x, y + rad.tl);
+        ctx.quadraticCurveTo(x, y, x + rad.tl, y);
+        ctx.closePath();
+
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    // We're not extending the instance
+    return { };
 });
 
 BoPattern.extend(function(internal) {
     "use strict";
 
     return {
-        load: function(data) {
+        load: function(data, meta) {
             if (!msngr.exist(data)) {
                 return undefined;
+            }
+
+            var copy = data.slice(0); // This copies the array; msngr.copy() doesn't copy arrays :(
+            var opts = msngr.copy(meta) || { }; // This copies the meta data options if any were provided
+            if (opts.labels === undefined) {
+                opts.labels = {
+                    xaxis: [],
+                    yaxis: []
+                };
+            }
+
+            opts.labels.xaxis = opts.labels.xaxis || [];
+            opts.labels.yaxis = opts.labels.yaxis || [];
+
+            // Check the array dimensions
+            if (msngr.isArray(copy) && (!msngr.isArray(copy[0]) && copy[0] !== undefined)) {
+                // Array is one dimensional. Sigh. Let's just 'fix the glitch'
+                copy = [copy];
+                if (internal.config.warnings === true) {
+                    console.warn("Single dimension array passed into <instance>.load(). It was autocorrected.");
+                }
             }
 
             // Alright we're repopulating the grid; let's tell the existing
@@ -804,19 +1024,20 @@ BoPattern.extend(function(internal) {
                 } else {
                     var minValue = undefined;
                     var maxValue = undefined;
-                    var maxFirstDimension = data.length;
+                    var maxFirstDimension = copy.length;
                     var maxSecondDimension = undefined;
+                    var xaxisLabelCount = opts.labels.xaxis.length;
+                    var yaxisLabelCount = opts.labels.yaxis.length;
                     var objects = [];
 
-                    var dataLen = data.length;
+                    var dataLen = copy.length;
                     for (var i = 0; i < dataLen; ++i) {
-                        var sLen = data[i].length;
+                        var sLen = copy[i].length;
                         for (var j = 0; j < sLen; ++j) {
-                            var datum = data[i][j];
+                            var datum = copy[i][j];
                             if (msngr.isObject(datum)) {
-                                datum.value = datum.value || datum.data;
+                                datum.value = (datum.value || datum.data) || 0;
                                 datum.label = datum.label || datum.value.toFixed(2);
-                                delete datum.data;
                             } else {
                                 datum = {
                                     value: datum,
@@ -845,19 +1066,39 @@ BoPattern.extend(function(internal) {
 
                     // Clear the original array of objects if any still exist and create new ones
                     internal.clearObjects("background");
+                    internal.clearObjects("overlay", "boempty");
+                    internal.clearObjects("overlay", "boxaxislabel");
+                    internal.clearObjects("overlay", "boyaxislabel");
+                    if (maxSecondDimension === undefined) {
+                        internal.addObject("overlay", internal.BoEmpty());
+                    }
 
-                    internal.data.raw = data;
+                    internal.data.raw = copy;
 
-                    internal.stopUpdating();
                     internal.stopRendering();
 
                     internal.data.minValue = minValue;
                     internal.data.maxValue = maxValue;
                     internal.data.maxFirstDimension = maxFirstDimension;
                     internal.data.maxSecondDimension = maxSecondDimension;
+                    internal.data.xaxisLabelCount = xaxisLabelCount;
+                    internal.data.yaxisLabelCount = yaxisLabelCount;
                     internal.objects.background = objects;
 
-                    internal.startUpdating();
+                    // x-axis labels
+                    for (var i = 0; i < opts.labels.xaxis.length; ++i) {
+                        (function(label, index) {
+                            internal.addObject("overlay", internal.BoXAxisLabel(label, index));
+                        }(opts.labels.xaxis[i], i));
+                    }
+
+                    // y-axis labels
+                    for (var i = 0; i < opts.labels.yaxis.length; ++i) {
+                        (function(label, index) {
+                            internal.addObject("overlay", internal.BoYAxisLabel(label, index));
+                        }(opts.labels.yaxis[i], i));
+                    }
+
                     internal.startRendering();
 
                     var objLen = internal.objects.background.length;

@@ -14,14 +14,15 @@ BoPattern.extend(function(internal) {
             render: function(ctx) {
                 if (x && y) {
                     ctx.font = internal.BoEmpty.properties.font;
+                    ctx.textAlign = "left";
                     ctx.fillStyle = internal.BoEmpty.properties.color;
                     ctx.fillText(txt, x, y);
                 }
             },
             update: function(ctx) {
                 txtMeasurement = ctx.measureText(txt);
-                x = ((internal.screenWidth / 2) - txtMeasurement.width);
-                y = ((internal.screenHeight / 2) - txtMeasurement.height);
+                x = ((internal.screenWidth / 2) - (txtMeasurement.width / 2));
+                y = ((internal.screenHeight / 2) - internal.BoEmpty.properties.heightMargin);
             },
             load: function() {
 
@@ -41,8 +42,9 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoEmpty.properties = {
-        font: "16pt Calibri",
-        color: "#000000"
+        font: "24px Gotham,Helvetica Neue,Helvetica,Arial,sans-serif",
+        color: "#858585",
+        heightMargin: 14
     };
 
     return { };

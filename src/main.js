@@ -21,7 +21,9 @@ var BoPattern = (function() {
             },
             data: {},
             eventHandlers: {},
+            utils: {},
             config: msngr.merge({
+                warnings: true,
                 screen: {
                     ratio: undefined
                 },
@@ -159,7 +161,7 @@ var BoPattern = (function() {
             set: function(input) {
                 internal.debug = input;
                 if (input === true) {
-                    internal.clearObjects("overlay");
+                    internal.clearObjects("overlay", "bodebug"); // Make sure there is only one instance of BoDebug
                     internal.addObject("overlay", internal.BoDebug());
                     Object.defineProperty(boObj, "internal", {
                         configurable: true,

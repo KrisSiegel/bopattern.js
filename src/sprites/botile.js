@@ -13,6 +13,12 @@ BoPattern.extend(function(internal) {
         var mouseOver;
         var cachedScreenWidth;
         var cachedScreenHeight;
+        var tooltip = internal.BoTooltip();
+
+        // Basically a polyfill for ES6's Math.trunc()
+        var truncate = function (val) {
+        	return val < 0 ? Math.ceil(val) : Math.floor(val);
+        };
 
         var calcTileDimensions = function() {
             var tileWidth = (internal.boundedWidth / internal.data.maxFirstDimension);
@@ -69,7 +75,7 @@ BoPattern.extend(function(internal) {
                                 // IT'S IN ME!
                                 if (mouseOver === false) {
                                     // State just changed; trigger intensifying!
-                                    internal.trigger("hover", {
+                                    var eventData = {
                                         x: getProperty("x"),
                                         y: getProperty("y"),
                                         absX: internal.absoluteLeft + getProperty("x"),
@@ -77,7 +83,9 @@ BoPattern.extend(function(internal) {
                                         width: getProperty("width"),
                                         height: getProperty("height"),
                                         label: getProperty("label")
-                                    });
+                                    };
+                                    internal.trigger("hover", eventData);
+                                    tooltip.load(eventData);
                                 }
                                 mouseOver = true;
                                 hitInThisIteration = true;
@@ -89,6 +97,7 @@ BoPattern.extend(function(internal) {
                 // Do this so I'm not setting mouseOver = false 4 freaking times
                 if (hitInThisIteration !== true) {
                     mouseOver = false;
+                    tooltip.unload();
                 }
 
                 if (cachedScreenWidth !== internal.screenWidth || cachedScreenHeight !== internal.screenHeight) {
@@ -147,10 +156,15 @@ BoPattern.extend(function(internal) {
                 properties.y = (dimensions.y);
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
-                if (internal.data.maxValue === 0) {
-                    properties.tileAlpha = 0.0;
+                properties.value = truncate(properties.value || 0);
+                if (internal.data.maxValue === 0 || properties.value === 0) {
+                    properties.tileAlpha = internal.BoTile.properties.emptyTileAlpha;
+                    properties.tileColor = internal.BoTile.properties.emptyTileColor;
                 } else {
                     properties.tileAlpha = (properties.value / internal.data.maxValue);
+                    if (internal.BoTile.properties.tileAlphaMinimum > properties.tileAlpha) {
+                        properties.tileAlpha = internal.BoTile.properties.tileAlphaMinimum;
+                    }
                 }
 
                 transitionProperties = msngr.copy(properties);
@@ -183,10 +197,13 @@ BoPattern.extend(function(internal) {
     internal.BoTile.properties = {
         tileColor: "#4DD2FF",
         tileAlpha: 1,
+        tileAlphaMinimum: 0.15,
         borderColor: "#FFFFFF",
         borderThickness: 10,
         borderAlpha: 1,
-        borderHighlight: "#A3B3A3"
+        borderHighlight: "#A3B3A3",
+        emptyTileColor: "#888890",
+        emptyTileAlpha: 0.356
     };
 
     return { };
