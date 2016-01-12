@@ -156,7 +156,8 @@ BoPattern.extend(function(internal) {
                 properties.y = (dimensions.y);
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
-                if (internal.data.maxValue === 0 || (properties.value && truncate(properties.value) === 0)) {
+                properties.value = truncate(properties.value || 0);
+                if (internal.data.maxValue === 0 || properties.value === 0) {
                     properties.tileAlpha = internal.BoTile.properties.emptyTileAlpha;
                     properties.tileColor = internal.BoTile.properties.emptyTileColor;
                 } else {

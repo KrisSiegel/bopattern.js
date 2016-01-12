@@ -636,7 +636,8 @@ BoPattern.extend(function(internal) {
                 properties.y = (dimensions.y);
                 properties.width = (dimensions.width);
                 properties.height = (dimensions.height);
-                if (internal.data.maxValue === 0 || (properties.value && truncate(properties.value) === 0)) {
+                properties.value = truncate(properties.value || 0);
+                if (internal.data.maxValue === 0 || properties.value === 0) {
                     properties.tileAlpha = internal.BoTile.properties.emptyTileAlpha;
                     properties.tileColor = internal.BoTile.properties.emptyTileColor;
                 } else {
@@ -891,7 +892,7 @@ BoPattern.extend(function(internal) {
                 ctx.strokeStyle = internal.BoTooltip.properties.backgroundStrokeColor;
                 ctx.lineWidth = internal.BoTooltip.properties.backgroundStrokeThickness;
                 ctx.fillStyle = internal.BoTooltip.properties.backgroundColor;
-                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, tile.height, 5);
+                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, 55, 5);
                 ctx.closePath();
 
                 ctx.beginPath();
@@ -1066,7 +1067,7 @@ BoPattern.extend(function(internal) {
                     internal.clearObjects("overlay", "boempty");
                     internal.clearObjects("overlay", "boxaxislabel");
                     internal.clearObjects("overlay", "boyaxislabel");
-                    if (maxSecondDimension === undefined || maxSecondDimension === 0) {
+                    if (maxSecondDimension === undefined) {
                         internal.addObject("overlay", internal.BoEmpty());
                     }
 

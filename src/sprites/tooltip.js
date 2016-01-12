@@ -22,7 +22,7 @@ BoPattern.extend(function(internal) {
                 ctx.strokeStyle = internal.BoTooltip.properties.backgroundStrokeColor;
                 ctx.lineWidth = internal.BoTooltip.properties.backgroundStrokeThickness;
                 ctx.fillStyle = internal.BoTooltip.properties.backgroundColor;
-                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, tile.height, 5);
+                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, 55, 5);
                 ctx.closePath();
 
                 ctx.beginPath();

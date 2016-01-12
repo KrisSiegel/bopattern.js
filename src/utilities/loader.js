@@ -86,7 +86,7 @@ BoPattern.extend(function(internal) {
                     internal.clearObjects("overlay", "boempty");
                     internal.clearObjects("overlay", "boxaxislabel");
                     internal.clearObjects("overlay", "boyaxislabel");
-                    if (maxSecondDimension === undefined || maxSecondDimension === 0) {
+                    if (maxSecondDimension === undefined) {
                         internal.addObject("overlay", internal.BoEmpty());
                     }
 
