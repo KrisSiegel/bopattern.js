@@ -11,7 +11,6 @@ BoPattern.extend(function(internal) {
         var overX;
         var overY;
         var tile;
-        var fontSize = parseInt(internal.BoTooltip.properties.font); // Plucks the size out of the font property
         var loaded = false;
 
         var me = {
@@ -50,6 +49,7 @@ BoPattern.extend(function(internal) {
                 tile = tileProps;
             },
             unload: function() {
+                // Ensures we only unload ourselves
                 if (loaded === true) {
                     loaded = false;
                     alpha = 0;

@@ -14,9 +14,9 @@ BoPattern.extend(function(internal) {
             type: "boyaxislabel",
             render: function(ctx) {
                 if (x && y) {
-                    ctx.font = internal.BoEmpty.properties.font;
+                    ctx.font = internal.BoYAxisLabel.properties.font;
                     ctx.textAlign = "left";
-                    ctx.fillStyle = internal.BoEmpty.properties.color;
+                    ctx.fillStyle = internal.BoYAxisLabel.properties.color;
                     ctx.fillText(txt, x, y);
                 }
             },
@@ -47,7 +47,7 @@ BoPattern.extend(function(internal) {
         return me;
     };
 
-    internal.BoEmpty.properties = {
+    internal.BoYAxisLabel.properties = {
         font: "12pt sans-serif",
         color: "#000000"
     };
