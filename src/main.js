@@ -21,6 +21,7 @@ var BoPattern = (function() {
             },
             data: {},
             eventHandlers: {},
+            utils: {},
             config: msngr.merge({
                 warnings: true,
                 screen: {

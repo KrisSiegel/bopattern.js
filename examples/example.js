@@ -28,7 +28,6 @@
     window.addEventListener("load", function(e) {
 
         window.bopat = BoPattern("#container");
-        window.bopat.debug = true;
 
         document.querySelector("button#randomBtn").addEventListener("click", loadData, false);
 
