@@ -22,7 +22,7 @@ BoPattern.extend(function(internal) {
             update: function(ctx) {
                 txtMeasurement = ctx.measureText(txt);
                 x = ((internal.screenWidth / 2) - (txtMeasurement.width / 2));
-                y = ((internal.screenHeight / 2) - 14);
+                y = ((internal.screenHeight / 2) - internal.BoEmpty.properties.heightMargin);
             },
             load: function() {
 
@@ -43,7 +43,8 @@ BoPattern.extend(function(internal) {
 
     internal.BoEmpty.properties = {
         font: "24px Gotham,Helvetica Neue,Helvetica,Arial,sans-serif",
-        color: "#858585"
+        color: "#858585",
+        heightMargin: 14
     };
 
     return { };

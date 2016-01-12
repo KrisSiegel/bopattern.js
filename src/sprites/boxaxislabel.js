@@ -14,9 +14,9 @@ BoPattern.extend(function(internal) {
             type: "boxaxislabel",
             render: function(ctx) {
                 if (x && y) {
-                    ctx.font = internal.BoEmpty.properties.font;
+                    ctx.font = internal.BoXAxisLabel.properties.font;
                     ctx.textAlign = "left";
-                    ctx.fillStyle = internal.BoEmpty.properties.color;
+                    ctx.fillStyle = internal.BoXAxisLabel.properties.color;
                     ctx.fillText(txt, x, y);
                 }
             },
@@ -28,7 +28,7 @@ BoPattern.extend(function(internal) {
 
                     x = internal.boundedX1 + ((perLabelWidth * pos) + (perLabelWidth) / 2) - (txtWidth / 2);
                     x = x - (internal.BoTile.properties.borderThickness / 2);
-                    y = internal.boundedY1 + internal.boundedHeight + 20;
+                    y = internal.boundedY1 + internal.boundedHeight + internal.BoXAxisLabel.properties.heightMargin;
                 }
             },
             load: function() {
@@ -48,9 +48,10 @@ BoPattern.extend(function(internal) {
         return me;
     };
 
-    internal.BoEmpty.properties = {
+    internal.BoXAxisLabel.properties = {
         font: "12pt sans-serif",
-        color: "#000000"
+        color: "#000000",
+        heightMargin: 20
     };
 
     return { };
