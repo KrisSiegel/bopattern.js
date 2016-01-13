@@ -915,11 +915,11 @@ BoPattern.extend(function(internal) {
                 ctx.strokeStyle = internal.BoTooltip.properties.backgroundStrokeColor;
                 ctx.lineWidth = internal.BoTooltip.properties.backgroundStrokeThickness;
                 ctx.fillStyle = internal.BoTooltip.properties.backgroundColor;
-                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, 55, 5);
+                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, 25, 5);
                 ctx.closePath();
 
                 ctx.beginPath();
-                ctx.font = internal.BoTitle.properties.font;
+                ctx.font = internal.BoTooltip.properties.font;
                 ctx.fillStyle = internal.BoTooltip.properties.color;
                 ctx.globalAlpha = alpha;
                 ctx.fillText(tile.label, txtX, txtY);
@@ -931,7 +931,7 @@ BoPattern.extend(function(internal) {
                 txtX = ((tile.x + (tile.width / 2) - (txtWidth / 2)) - (internal.BoTile.properties.borderThickness / 2));
                 txtY = tile.y - internal.BoTile.properties.borderThickness;
                 overX = txtX;
-                overY = tile.y - 45;
+                overY = tile.y - 25;
                 if (alpha < 1) {
                     alpha += .10;
                 }
@@ -962,7 +962,7 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoTooltip.properties = {
-        font: "11px sans-serif",
+        font: "13px sans-serif",
         color: "#FFFFEE",
         backgroundColor: "#232323",
         backgroundStrokeThickness: 1,
