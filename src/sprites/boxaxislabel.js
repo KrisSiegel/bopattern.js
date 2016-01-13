@@ -59,7 +59,7 @@ BoPattern.extend(function(internal) {
         font: "16px sans-serif",
         smallestFont: "12px sans-serif",
         color: "#000000",
-        heightMargin: 20
+        heightMargin: 15
     };
 
     return { };
