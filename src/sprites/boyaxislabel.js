@@ -9,12 +9,13 @@ BoPattern.extend(function(internal) {
         var txtMeasurement;
         var x;
         var y;
+        var font;
 
         var me = {
             type: "boyaxislabel",
             render: function(ctx) {
                 if (x && y) {
-                    ctx.font = internal.BoYAxisLabel.properties.font;
+                    ctx.font = font;
                     ctx.textAlign = "left";
                     ctx.fillStyle = internal.BoYAxisLabel.properties.color;
                     ctx.fillText(txt, x, y);
@@ -28,6 +29,12 @@ BoPattern.extend(function(internal) {
                     var ylabelWidth = (internal.screenWidth - internal.boundedWidth) / 2;
                     x = (ylabelWidth / 2) - (txtWidth / 2);
                     y = internal.boundedY1 + (perLabelHeight * pos) + (perLabelHeight / 2);
+
+                    if (internal.data.yaxisLabelCount > 15) {
+                        font = internal.BoYAxisLabel.properties.smallestFont;
+                    } else {
+                        font = internal.BoYAxisLabel.properties.font;
+                    }
                 }
             },
             load: function() {
@@ -48,7 +55,8 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoYAxisLabel.properties = {
-        font: "12pt sans-serif",
+        font: "16px sans-serif",
+        smallestFont: "12px sans-serif",
         color: "#000000"
     };
 
