@@ -112,10 +112,16 @@ var BoPattern = (function() {
 
         // Clear the array
         internal.clearObjects = function(zkey, type) {
+            var clearqueue = [];
             for (var i = 0; i < internal.objects[zkey].length; ++i) {
                 if (type === undefined || internal.objects[zkey][i].type === type) {
-                    internal.objects[zkey][i].unload();
+                    clearqueue.push(internal.objects[zkey][i]);
                 }
+            }
+            var item = clearqueue.shift();
+            while (item !== undefined) {
+                item.unload();
+                item = clearqueue.shift();
             }
         };
 
