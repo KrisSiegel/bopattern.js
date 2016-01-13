@@ -112,10 +112,16 @@ var BoPattern = (function() {
 
         // Clear the array
         internal.clearObjects = function(zkey, type) {
+            var clearqueue = [];
             for (var i = 0; i < internal.objects[zkey].length; ++i) {
                 if (type === undefined || internal.objects[zkey][i].type === type) {
-                    internal.objects[zkey][i].unload();
+                    clearqueue.push(internal.objects[zkey][i]);
                 }
+            }
+            var item = clearqueue.shift();
+            while (item !== undefined) {
+                item.unload();
+                item = clearqueue.shift();
             }
         };
 
@@ -765,12 +771,13 @@ BoPattern.extend(function(internal) {
         var txtMeasurement;
         var x;
         var y;
+        var font;
 
         var me = {
             type: "boxaxislabel",
             render: function(ctx) {
                 if (x && y) {
-                    ctx.font = internal.BoXAxisLabel.properties.font;
+                    ctx.font = font;
                     ctx.textAlign = "left";
                     ctx.fillStyle = internal.BoXAxisLabel.properties.color;
                     ctx.fillText(txt, x, y);
@@ -785,6 +792,12 @@ BoPattern.extend(function(internal) {
                     x = internal.boundedX1 + ((perLabelWidth * pos) + (perLabelWidth) / 2) - (txtWidth / 2);
                     x = x - (internal.BoTile.properties.borderThickness / 2);
                     y = internal.boundedY1 + internal.boundedHeight + internal.BoXAxisLabel.properties.heightMargin;
+
+                    if (internal.data.xaxisLabelCount > 15) {
+                        font = internal.BoXAxisLabel.properties.smallestFont;
+                    } else {
+                        font = internal.BoXAxisLabel.properties.font;
+                    }
                 }
             },
             load: function() {
@@ -805,9 +818,10 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoXAxisLabel.properties = {
-        font: "12pt sans-serif",
+        font: "16px sans-serif",
+        smallestFont: "12px sans-serif",
         color: "#000000",
-        heightMargin: 20
+        heightMargin: 15
     };
 
     return { };
@@ -824,12 +838,13 @@ BoPattern.extend(function(internal) {
         var txtMeasurement;
         var x;
         var y;
+        var font;
 
         var me = {
             type: "boyaxislabel",
             render: function(ctx) {
                 if (x && y) {
-                    ctx.font = internal.BoYAxisLabel.properties.font;
+                    ctx.font = font;
                     ctx.textAlign = "left";
                     ctx.fillStyle = internal.BoYAxisLabel.properties.color;
                     ctx.fillText(txt, x, y);
@@ -843,6 +858,12 @@ BoPattern.extend(function(internal) {
                     var ylabelWidth = (internal.screenWidth - internal.boundedWidth) / 2;
                     x = (ylabelWidth / 2) - (txtWidth / 2);
                     y = internal.boundedY1 + (perLabelHeight * pos) + (perLabelHeight / 2);
+
+                    if (internal.data.yaxisLabelCount > 15) {
+                        font = internal.BoYAxisLabel.properties.smallestFont;
+                    } else {
+                        font = internal.BoYAxisLabel.properties.font;
+                    }
                 }
             },
             load: function() {
@@ -863,7 +884,8 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoYAxisLabel.properties = {
-        font: "12pt sans-serif",
+        font: "16px sans-serif",
+        smallestFont: "12px sans-serif",
         color: "#000000"
     };
 
@@ -893,11 +915,11 @@ BoPattern.extend(function(internal) {
                 ctx.strokeStyle = internal.BoTooltip.properties.backgroundStrokeColor;
                 ctx.lineWidth = internal.BoTooltip.properties.backgroundStrokeThickness;
                 ctx.fillStyle = internal.BoTooltip.properties.backgroundColor;
-                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, 55, 5);
+                internal.utils.fillRoundRect(ctx, overX - 6, overY, (txtWidth * 1.5) + 6, 25, 5);
                 ctx.closePath();
 
                 ctx.beginPath();
-                ctx.font = internal.BoTitle.properties.font;
+                ctx.font = internal.BoTooltip.properties.font;
                 ctx.fillStyle = internal.BoTooltip.properties.color;
                 ctx.globalAlpha = alpha;
                 ctx.fillText(tile.label, txtX, txtY);
@@ -909,7 +931,7 @@ BoPattern.extend(function(internal) {
                 txtX = ((tile.x + (tile.width / 2) - (txtWidth / 2)) - (internal.BoTile.properties.borderThickness / 2));
                 txtY = tile.y - internal.BoTile.properties.borderThickness;
                 overX = txtX;
-                overY = tile.y - 45;
+                overY = tile.y - 25;
                 if (alpha < 1) {
                     alpha += .10;
                 }
@@ -940,7 +962,7 @@ BoPattern.extend(function(internal) {
     };
 
     internal.BoTooltip.properties = {
-        font: "11px sans-serif",
+        font: "13px sans-serif",
         color: "#FFFFEE",
         backgroundColor: "#232323",
         backgroundStrokeThickness: 1,
